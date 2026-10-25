@@ -5,3 +5,5 @@ out/
 *.vsix
 .DS_Store
 .superpowers/
+.vscode/settings.json
+.vscode/excel-pq-symbols/
