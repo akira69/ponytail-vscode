@@ -1,0 +1,54 @@
+{
+  "repository": "https://github.com/DietrichGebert/ponytail.git",
+  "release": "v5.3.2",
+  "commit": "16352ac229eb08a9598dcae48fe9f2b342567d86",
+  "assets": [
+    {
+      "source": "LICENSE",
+      "destination": "LICENSE"
+    },
+    {
+      "source": "skills/ponytail/SKILL.md",
+      "destination": "upstream/skills/ponytail/SKILL.md"
+    },
+    {
+      "source": "skills/ponytail-review/SKILL.md",
+      "destination": "skills/ponytail-review/SKILL.md"
+    },
+    {
+      "source": "skills/ponytail-audit/SKILL.md",
+      "destination": "skills/ponytail-audit/SKILL.md"
+    },
+    {
+      "source": "skills/ponytail-debt/SKILL.md",
+      "destination": "skills/ponytail-debt/SKILL.md"
+    },
+    {
+      "source": "skills/ponytail-gain/SKILL.md",
+      "destination": "skills/ponytail-gain/SKILL.md"
+    },
+    {
+      "source": "skills/ponytail-help/SKILL.md",
+      "destination": "skills/ponytail-help/SKILL.md"
+    },
+    {
+      "source": "hooks/ponytail-config.js",
+      "destination": "hooks/ponytail-config.js"
+    },
+    {
+      "source": "hooks/ponytail-instructions.js",
+      "destination": "hooks/ponytail-instructions.js"
+    }
+  ],
+  "assetSha256": {
+    "LICENSE": "f1af4301bd3b85026965f9f1cfa101b9bfd73a75c6b92f7a2a72bab5768abd36",
+    "upstream/skills/ponytail/SKILL.md": "f18008471528f0adde90a560d053f85935eed5cee26c447b7177ad24472bcf32",
+    "skills/ponytail-review/SKILL.md": "affa0eedca467b58699fafbea28f6f85352aa3e7f23785964bf42f029a291504",
+    "skills/ponytail-audit/SKILL.md": "3ab632ce4695de214dafe4db13d6f939e1c4be328bd0754ea751dc28b70be554",
+    "skills/ponytail-debt/SKILL.md": "f0b59cb7e623f68568f2164864c757d41f0452d176c2f28b5b9b3c6b7ef3a799",
+    "skills/ponytail-gain/SKILL.md": "b87f5b982820479831608d3b3d4b942c95577820fef088662348eb16b48792dc",
+    "skills/ponytail-help/SKILL.md": "c4b353c9a13a9fd7008e319d1965816faaed13dcb61feb90afc514e50031706b",
+    "hooks/ponytail-config.js": "60b26f160a18cf27eddd5154e2d83f4afbd37097dabe9815795589a6f6293332",
+    "hooks/ponytail-instructions.js": "35cf044f1657b8c49767efbbb7f319e9fa69f37d66475d8d8e75b7d2d0fd05a6"
+  }
+}

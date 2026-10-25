@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "subagentStart": [
+      {
+        "type": "command",
+        "command": "node \"${PLUGIN_ROOT}/com.github.copilot/hooks/subagent-start.cjs\"",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+src/**
+test/**
+node_modules/**
+.github/workflows/**
+docs/**
+upstream/**
+scripts/**
+.superpowers/**
+.vscode/**
+.vscode-test/**
+out/**
+package-lock.json
+tsconfig.json
+esbuild.mjs

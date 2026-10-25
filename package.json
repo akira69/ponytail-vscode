@@ -1,0 +1,66 @@
+{
+  "name": "ponytail-vscode",
+  "displayName": "Ponytail",
+  "publisher": "ponytail-vscode",
+  "version": "0.1.0",
+  "description": "Ponytail for VS Code and GitHub Copilot",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.142.0"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "scripts": {
+    "prepare:skills": "node scripts/prepare-skills.cjs",
+    "check:upstream": "node scripts/check-upstream.cjs",
+    "check:plugin": "node scripts/check-plugin.cjs",
+    "generate:instructions": "node scripts/generate-instructions.cjs",
+    "prepare:assets": "npm run prepare:skills && npm run check:upstream && npm run generate:instructions",
+    "typecheck": "tsc --noEmit",
+    "compile": "npm run prepare:assets && npm run typecheck && node esbuild.mjs",
+    "test:unit": "node --test \"test/unit/**/*.cjs\"",
+    "compile:tests": "node esbuild.mjs --tests",
+    "test:extension": "npm run compile && npm run compile:tests && node test/runTest.cjs",
+    "test": "npm run test:unit && npm run test:extension",
+    "package": "npm run compile && vsce package"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "ponytail.setMode",
+        "title": "Ponytail: Set Mode",
+        "category": "Ponytail"
+      }
+    ],
+    "chatSkills": [
+      { "path": "./skills/ponytail/SKILL.md" },
+      { "path": "./skills/ponytail-review/SKILL.md" },
+      { "path": "./skills/ponytail-audit/SKILL.md" },
+      { "path": "./skills/ponytail-debt/SKILL.md" },
+      { "path": "./skills/ponytail-gain/SKILL.md" },
+      { "path": "./skills/ponytail-help/SKILL.md" }
+    ],
+    "chatAgents": [
+      { "path": "./com.github.copilot/agents/ponytail-reviewer.agent.md" },
+      { "path": "./com.github.copilot/agents/ponytail-researcher.agent.md" }
+    ],
+    "chatInstructions": [
+      { "path": "./generated/instructions/ponytail-lite.instructions.md", "when": "ponytail.mode == 'lite'" },
+      { "path": "./generated/instructions/ponytail-full.instructions.md", "when": "ponytail.mode == 'full'" },
+      { "path": "./generated/instructions/ponytail-ultra.instructions.md", "when": "ponytail.mode == 'ultra'" }
+    ]
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.99.0",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.2",
+    "mocha": "^10.8.2",
+    "typescript": "^5.7.3",
+    "yaml": "^2.9.1"
+  }
+}

@@ -1,0 +1,79 @@
+name: Upstream update
+on:
+  schedule:
+    - cron: '17 10 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Resolve upstream release
+        id: upstream
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="$(gh api repos/DietrichGebert/ponytail/releases/latest --jq .tag_name)"
+          source="$RUNNER_TEMP/ponytail-upstream"
+          git clone --filter=blob:none --no-checkout https://github.com/DietrichGebert/ponytail.git "$source"
+          git -C "$source" fetch --depth=1 origin "refs/tags/$tag:refs/tags/$tag"
+          commit="$(git -C "$source" rev-parse "$tag^{commit}")"
+          git -C "$source" checkout --detach "$commit"
+          printf 'tag=%s\ncommit=%s\nsource=%s\n' "$tag" "$commit" "$source" >> "$GITHUB_OUTPUT"
+      - name: Import allow-listed upstream assets
+        env:
+          SOURCE: ${{ steps.upstream.outputs.source }}
+          TAG: ${{ steps.upstream.outputs.tag }}
+          COMMIT: ${{ steps.upstream.outputs.commit }}
+        run: node scripts/sync-upstream.cjs --source "$SOURCE" --release "$TAG" --commit "$COMMIT"
+      - name: Install dependencies
+        run: npm ci
+      - name: Prepare skills
+        run: npm run prepare:skills
+      - name: Generate instructions
+        run: npm run generate:instructions
+      - name: Check upstream pin
+        run: npm run check:upstream
+      - name: Check plugin
+        run: npm run check:plugin
+      - name: Test
+        run: npm test
+      - name: Package
+        run: npm run package
+      - name: Open review pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.upstream.outputs.tag }}
+        run: |
+          set -euo pipefail
+          branch="upstream/$TAG"
+          gh auth setup-git
+          existing="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            echo "Open pull request #$existing already covers $TAG; nothing to do."
+            exit 0
+          fi
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            echo "Remote branch $branch already exists but has no open pull request; refusing to overwrite it." >&2
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git add upstream.json upstream LICENSE skills hooks generated/instructions
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: update Ponytail assets to $TAG"
+          git push origin "HEAD:refs/heads/$branch"
+          base="$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)"
+          body="Updates the pinned Ponytail assets. Validation ran in the update workflow before this PR was opened. A pull request created with GITHUB_TOKEN does not trigger pull_request or push workflows, so close and reopen this PR to run CI. A maintainer must review before merge or release."
+          gh pr create --draft --base "$base" --head "$branch" --title "chore: update Ponytail assets to $TAG" --body "$body"

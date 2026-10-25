@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ponytail-vscode",
+  "version": "0.1.0",
+  "description": "Ponytail skills and subagent guidance for GitHub Copilot",
+  "license": "MIT",
+  "homepage": "https://github.com/DietrichGebert/ponytail",
+  "author": {
+    "name": "DietrichGebert"
+  }
+}
