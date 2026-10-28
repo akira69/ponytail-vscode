@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 
 suite('Ponytail mode command', () => {
   test('persists an explicit mode and contributes all mode instruction files', async () => {
-    const extension = vscode.extensions.getExtension('ponytail-vscode.ponytail-vscode');
+    const extension = vscode.extensions.getExtension('Finch13.ponytail-vscode');
     assert.ok(extension);
     await extension.activate();
     await vscode.commands.executeCommand('ponytail.setMode', 'ultra');
@@ -20,7 +20,7 @@ suite('Ponytail mode command', () => {
   });
 
   test('does not persist an invalid explicit mode', async () => {
-    const extension = vscode.extensions.getExtension('ponytail-vscode.ponytail-vscode');
+    const extension = vscode.extensions.getExtension('Finch13.ponytail-vscode');
     assert.ok(extension);
     await extension.activate();
     const state = require(path.join(extension.extensionPath, 'shared', 'mode-state.cjs'));

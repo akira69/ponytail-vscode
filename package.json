@@ -1,7 +1,7 @@
 {
   "name": "ponytail-vscode",
   "displayName": "Ponytail",
-  "publisher": "ponytail-vscode",
+  "publisher": "Finch13",
   "version": "0.1.0",
   "description": "Ponytail for VS Code and GitHub Copilot",
   "license": "MIT",
