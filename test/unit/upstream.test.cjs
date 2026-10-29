@@ -333,7 +333,7 @@ test('check-upstream fails when a hashed asset is modified', () => {
   try {
     const copy = path.join(tmp, 'ext');
     for (const dir of ['scripts', 'upstream', 'skills', 'hooks']) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
-    for (const file of ['upstream.json', 'LICENSE']) fs.copyFileSync(path.join(root, file), path.join(copy, file));
+    for (const file of ['upstream.json', 'LICENSE', 'UPSTREAM-README.md']) fs.copyFileSync(path.join(root, file), path.join(copy, file));
     fs.symlinkSync(path.join(root, 'node_modules'), path.join(copy, 'node_modules'), 'junction');
     const run = () => spawnSync(process.execPath, [path.join(copy, 'scripts/check-upstream.cjs')], { encoding: 'utf8' });
     assert.equal(run().status, 0);

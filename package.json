@@ -1,9 +1,10 @@
 {
-  "name": "ponytail-vscode",
-  "displayName": "Ponytail",
+  "name": "ponytail-dietrichgebert-sync",
+  "displayName": "Ponytail Copilot Sync",
   "publisher": "Finch13",
   "version": "0.1.0",
   "description": "Ponytail for VS Code and GitHub Copilot",
+  "homepage": "https://github.com/DietrichGebert/ponytail",
   "license": "MIT",
   "engines": {
     "vscode": "^1.142.0"

@@ -1,10 +1,16 @@
-# Ponytail for VS Code and GitHub Copilot
+# Ponytail Copilot Sync
 
 Ponytail provides mode-aware coding guidance through two separate installable artifacts.
 
+## Upstream Source
+
+This integration is built directly from the official [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) project, not from another Marketplace extension with the Ponytail name. The core guidance, official skills, and shared helper modules are pinned to upstream v5.3.2 at commit [16352ac](https://github.com/DietrichGebert/ponytail/tree/16352ac229eb08a9598dcae48fe9f2b342567d86). The upstream README is mirrored verbatim as `UPSTREAM-README.md` and included in the VSIX; [the canonical README at the pinned revision](https://github.com/DietrichGebert/ponytail/blob/16352ac229eb08a9598dcae48fe9f2b342567d86/README.md) is available online. The revision and checksums are recorded in `upstream.json`.
+
+The status-bar control, VS Code contributions, and Copilot `subagentStart` adapter are this project's integration layer. The copied upstream README describes Ponytail across agents, including features that are not provided by this VS Code integration.
+
 ## Install
 
-**VS Code extension (VSIX):** install the published Ponytail extension from the VS Code Marketplace, or use **Extensions: Install from VSIX...** with a locally built `.vsix`. The extension contributes the status-bar mode control, command, six offline skills, and three mode-specific chat instructions. It does not install the Agent Plugin hook.
+**VS Code extension (VSIX):** install Ponytail Copilot Sync from the VS Code Marketplace, or use **Extensions: Install from VSIX...** with a locally built `.vsix`. The extension contributes the status-bar mode control, command, six offline skills, and three mode-specific chat instructions. It does not install the Agent Plugin hook.
 
 **GitHub Copilot Agent Plugin:** install this repository as an Agent Plugin using Copilot's plugin manager. Its `plugin.json`, `com.github.copilot/`, and root `skills/` provide plugin metadata, custom agents, offline skills, and the subagent-start hook. Installing the VSIX alone does not enable that hook; install the plugin separately when subagent guidance is needed.
 

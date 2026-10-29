@@ -25,6 +25,21 @@ test('package manifest contributes the expected VS Code resources', () => {
   }
 });
 
+test('extension docs identify and mirror the pinned upstream project', () => {
+  const manifest = JSON.parse(read('package.json'));
+  const pin = JSON.parse(read('upstream.json'));
+  const readme = read('README.md');
+
+  assert.equal(manifest.homepage, 'https://github.com/DietrichGebert/ponytail');
+  assert.match(readme, /https:\/\/github\.com\/DietrichGebert\/ponytail/);
+  assert.match(readme, /16352ac229eb08a9598dcae48fe9f2b342567d86/);
+  assert.match(readme, /https:\/\/github\.com\/DietrichGebert\/ponytail\/blob\/16352ac229eb08a9598dcae48fe9f2b342567d86\/README\.md/);
+  assert.doesNotMatch(readme, /\]\(UPSTREAM-README\.md\)/);
+  assert.match(readme, /UPSTREAM-README\.md/);
+  assert.ok(pin.assets.some(({ source, destination }) => source === 'README.md' && destination === 'UPSTREAM-README.md'));
+  assert.match(read('UPSTREAM-README.md'), /<h1 align="center">Ponytail<\/h1>/);
+});
+
 test('packaged core skill disables automatic model invocation', () => {
   assert.match(read('skills/ponytail/SKILL.md'), /^disable-model-invocation:\s*true$/m);
 });
@@ -63,6 +78,7 @@ test('VSCE selects runtime and plugin files but excludes development and raw ups
   for (const file of [
     'LICENSE', 'README.md', 'shared/mode-state.cjs',
     'hooks/ponytail-config.js', 'hooks/ponytail-instructions.js',
+    'UPSTREAM-README.md',
     'skills/ponytail/SKILL.md', 'generated/instructions/ponytail-full.instructions.md',
     'com.github.copilot/hooks/subagent-start.cjs',
     'com.github.copilot/agents/ponytail-reviewer.agent.md',
@@ -100,6 +116,7 @@ test('upstream updater opens a review PR without publishing or merging', () => {
 
   assert.doesNotMatch(actions, /^\s*uses:\s*[^\n]*(?:publish|merge)/im);
   assert.doesNotMatch(actions, /\b(?:npm|vsce)\s+publish\b|\bgh\s+pr\s+merge\b|\bgit\s+merge\b/i);
+  assert.match(actions, /git add[^\n]*UPSTREAM-README\.md/);
 });
 
 test('extension CI waits for unit tests and packages the compiled output after extension tests', () => {
