@@ -60,7 +60,25 @@ at 10 lines / 80 tokens. Ruff found no Python files; Biome checks JS/TS.
 
 The updater's real unchanged-pin run succeeded:
 https://github.com/akira69/ponytail-vscode/actions/runs/41073122480.
-The full changed-pin replay and final hosted CI evidence are recorded below after execution.
+Hosted Windows/Linux units, extension-host tests, and VSIX packaging passed for
+the implementation in [CI run 41076356245](https://github.com/akira69/ponytail-vscode/actions/runs/41076356245).
+
+### Real updater replay without a new release
+
+The disposable `codex/updater-smoke-20261030` branch started from the implementation
+and imported authentic upstream v5.3.2 (`16352ac229eb08a9598dcae48fe9f2b342567d86`).
+Main was never downgraded. These two releases have identical allow-listed asset
+bytes, so the resulting update changes the release/commit pin, not prompt content.
+
+- [Changed-pin run 41076451027](https://github.com/akira69/ponytail-vscode/actions/runs/41076451027) passed import, preparation, hashes, plugin checks, lint/audit, tests, packaging, upload/download of the patch, and draft PR creation. [PR #7](https://github.com/akira69/ponytail-vscode/pull/7) targeted only the disposable branch and restored the verified v5.3.3 commit.
+- [Repeat run 41076661900](https://github.com/akira69/ponytail-vscode/actions/runs/41076661900) repeated validation and reused PR #7 with the same head; no duplicate PR appeared.
+- After merging that test PR into its disposable base, [run 41076944495](https://github.com/akira69/ponytail-vscode/actions/runs/41076944495) found no change and skipped installation, validation/build, and PR creation.
+
+The implementation manifest uses the importer's key order, preventing a cosmetic
+first-run update. Test branches can be removed; the merged test PR and run logs
+retain the evidence. Future upstream prompt-content compatibility still depends on
+the checked adapter and review of each update PR; this replay cannot establish
+compatibility with an unreleased upstream change.
 
 An independent fresh-context final review of the implemented fixes found no
 actionable issue and approved proceeding to hosted verification.
