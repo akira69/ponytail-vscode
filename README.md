@@ -1,75 +1,66 @@
 # Ponytail Copilot Sync
 
-Ponytail provides mode-aware coding guidance through two separate installable artifacts.
+<img src="media/ponytail-integration.png" alt="Community integration icon based on upstream Ponytail artwork, with editor and plug badges" width="128">
 
-## Upstream Source
+**DietrichGebert's Ponytail coding guidance, packaged for GitHub Copilot in Visual Studio Code.** Choose a persistent guidance level, use the bundled review skills, and encourage smaller, maintainable changes.
 
-This is the community-maintained VS Code integration at [akira69/ponytail-vscode](https://github.com/akira69/ponytail-vscode), built directly from the official [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) project. The core guidance, official skills, shared helper modules, and upstream README are imported from a released upstream commit. `upstream.json` is the authoritative release, commit, and checksum record; it changes with each reviewed update. The upstream README is mirrored verbatim as `UPSTREAM-README.md` and included in the VSIX.
+## Why this extension exists
 
-The status-bar control, VS Code contributions, and Copilot `subagentStart` adapter are this project's integration layer. Raw core and help skills remain under `upstream/skills/` with upstream checksums. `prepare:skills` replaces only the core session-control paragraph with truthful VS Code controls and delegation guidance, and produces VS Code-specific help from `resources/ponytail-help.md`. The coding rules remain upstream-derived. If the upstream control paragraph changes, preparation fails for maintainer review; it never silently guesses. The same prepared core feeds main-chat instructions and subagent guidance. The copied upstream README describes Ponytail across agents, including features that are not provided by this VS Code integration.
+[Ponytail](https://github.com/DietrichGebert/ponytail) is DietrichGebert's project. The original prompts, coding approach, skills, and artwork come from upstream; credit belongs to their creators.
 
-## Install
+This community integration makes that work convenient to install and use in GitHub Copilot in VS Code. Our contribution is the editor packaging, mode selector, host-specific instructions, and maintenance of reviewed upstream updates. It is independently maintained by [akira69](https://github.com/akira69/ponytail-vscode), published as `Finch13`, and is not an official upstream or Microsoft release.
 
-**VS Code extension (VSIX):** build with `npm ci && npm run package`, then use **Extensions: Install from VSIX...**. Successful CI runs also attach a `ponytail-vsix` build artifact. The extension identity remains `Finch13.ponytail-dietrichgebert-sync`; the repository name does not change installed-extension identity. Marketplace publication is a separate release step. The extension contributes the status-bar mode control, command, six offline skills, and three mode-specific chat instructions. It does not install the Agent Plugin hook.
+Ponytail encourages the agent to understand the code, reuse what exists, and make the smallest complete change while retaining validation, error handling, security, and meaningful tests. It supplies instructions, not a separate AI model or a guarantee of model behavior.
 
-**GitHub Copilot Agent Plugin:** install this repository as an Agent Plugin using Copilot's plugin manager. Its `plugin.json`, `com.github.copilot/`, and root `skills/` provide plugin metadata, custom agents, offline skills, and the subagent-start hook. Installing the VSIX alone does not enable that hook; install the plugin separately when subagent guidance is needed.
+## Get started
 
-## Modes
+1. Install **Ponytail Copilot Sync** from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=Finch13.ponytail-dietrichgebert-sync).
+2. Open a project in VS Code **1.142.0 or later**, with GitHub Copilot chat available.
+3. Click **Ponytail: FULL** in the status bar, or run **Ponytail: Set Mode** from the Command Palette.
+4. Choose a mode, then use Copilot chat as usual. For example: “Review this change for correctness and unnecessary complexity.”
 
-The VS Code status-bar item and **Ponytail: Set Mode** command select `off`, `lite`, `full`, or `ultra`. The extension stores the selection in shared and workspace-specific state; the plugin hook reads that same state and injects the selected guidance when an eligible subagent starts. `/ponytail lite`, `/ponytail full`, and `/ponytail ultra` invoke the core skill but do not persist or change the extension mode.
+No separate Ponytail API key or service is required. Copilot has its own access requirements. The extension bundles its guidance locally and does not download prompts at runtime; Copilot itself still needs its normal model connection.
 
-Skills and generated instructions are bundled locally. They are available offline after installation and do not fetch upstream content at runtime.
+## Choose a mode
 
-## Plugin Hook Requirements and Limits
+| Mode | Guidance |
+| --- | --- |
+| **Lite** | Build the requested change and mention a simpler option. |
+| **Full** | Make the smallest complete change and check meaningful logic. The default. |
+| **Ultra** | Also question whether the requested work needs to exist. |
+| **Off** | Stop automatically adding Ponytail guidance to future requests. |
 
-Automatic subagent guidance requires a supported VS Code and GitHub Copilot version with plugin hooks enabled, the Agent Plugin enabled and trusted, and Node.js available on `PATH`. VS Code plugin hooks are preview functionality and may also be restricted by organization policy. The built-in `general-purpose` subagent does not emit `subagentStart`, so this plugin cannot inject guidance into it; the parent agent must include the relevant guidance when delegating to that agent. Hooks add guidance but do not enforce model behavior.
+Your selection persists for the workspace. Multiple windows observe mode changes; multi-root windows currently use the first folder. Changing mode through a chat message or `/ponytail` does **not** change the saved setting. Off cannot remove instructions already in chat history; start a new chat when you need a clean context.
 
-## Upstream Updates
+## Included skills
 
-The updater checks the latest upstream release daily at 10:17 UTC and can also be run from **Actions > Upstream update > Run workflow**. It imports only allow-listed assets, records the tag/commit/checksums, validates the integration, runs tests under a virtual display, builds a VSIX, and opens a draft PR. If the pin is unchanged, it skips the build and PR. It does not follow unreleased upstream commits.
+| Skill | Use it for |
+| --- | --- |
+| `/ponytail` | The core minimal, maintainable coding approach. |
+| `/ponytail-review` | Review a change for correctness, security, tests, performance, and complexity. |
+| `/ponytail-audit` | Examine the whole repository and rank actionable findings. |
+| `/ponytail-debt` | List deliberate shortcuts and deferred work. |
+| `/ponytail-gain` | Show upstream benchmark results, not measurements of this extension. |
+| `/ponytail-help` | Explain controls, scope, and usage. |
 
-Validation runs with read-only repository permissions. A separate clean job applies only the imported paths and opens the PR with write permissions; it does not execute the imported code. Existing open PRs are reused, and an interrupted push can be retried without force-pushing. Review and merge remain manual. Bot-created PRs using `GITHUB_TOKEN` do not trigger ordinary CI: close and reopen the PR as a maintainer before merging. Enable **Settings > Actions > General > Allow GitHub Actions to create and approve pull requests** for this repository; the workflow creates draft PRs and never approves them.
+The extension also contributes `ponytail-reviewer` and `ponytail-researcher` custom agents.
 
-Dependabot proposes npm and GitHub Actions updates weekly. CI runs on Windows and Linux and checks lint, dependency advisories, upstream hashes, plugin structure, unit tests, and Linux extension-host tests. A failed import or test leaves the installed extension unchanged and needs maintainer attention. Check Actions failures and keep notifications enabled; GitHub can disable schedules in inactive public repositories after 60 days.
+## Optional subagent guidance
 
-This keeps source updates proposed automatically, not installed extensions perpetually current. After reviewing an update, bump both integration versions, validate live Copilot behavior, then publish a Marketplace release. VS Code can update Marketplace installations when extension auto-update is enabled. Sideloaded VSIX users must install the newer VSIX; Agent Plugin updates remain separate.
+The extension alone provides the controls, skills, custom agents, and mode-specific chat instructions. Automatic guidance when eligible subagents start requires installing [this repository](https://github.com/akira69/ponytail-vscode) separately as a **GitHub Copilot Agent Plugin** through Copilot's plugin manager.
 
-## Development
+That optional hook requires Node.js on PATH and plugin hooks enabled in a supported, trusted Copilot environment; organization policy may restrict it. The built-in `general-purpose` subagent does not emit the start hook, so the parent must pass the guidance explicitly. The prepared prompts include that reminder.
 
-Requirements: Node.js 22 and npm. From the repository root:
+This integration does not include upstream's Claude Code band, cost dashboard, or Claude-specific control commands.
 
-```sh
-npm ci
-npm run lint
-npm audit --audit-level=moderate
-npm run prepare:skills
-npm run generate:instructions
-npm run check:upstream
-npm run check:plugin
-npm test
-npm run package
-npm exec -- vsce ls
-```
+## Updates, support, and attribution
 
-`npm test` runs unit and VS Code extension-host tests. `npm run package` prepares assets, compiles, and creates the VSIX; `npm exec -- vsce ls` lists the files selected for packaging.
+A daily workflow checks upstream releases and proposes tested updates for maintainer review. Installed copies receive those changes only after a new extension version is published; enable VS Code extension auto-update if desired. Sideloaded VSIX packages and the optional Agent Plugin have separate update paths.
 
-## Manual Release
+- **Original Ponytail:** [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail).
+- **Integration issues:** [akira69/ponytail-vscode/issues](https://github.com/akira69/ponytail-vscode/issues).
+- **Release notes:** [CHANGELOG](CHANGELOG.md).
+- **Build, provenance, and release process:** [maintainer guide](docs/MAINTAINING.md).
+- **License and artwork credit:** [MIT license](LICENSE) and [third-party notices](THIRD-PARTY-NOTICES.md).
 
-Marketplace publication requires ownership of publisher `Finch13` and release credentials. No publishing credential is needed by CI or the updater. Before release, review the pinned upstream diff, pass CI, and run live Copilot checks for the extension and plugin in a supported VS Code profile. Update the VSIX `package.json` version and Agent Plugin `plugin.json` version together. Publish the VSIX and distribute/update the Agent Plugin as separate artifacts; neither is published automatically by the updater workflow.
-
-## Maintainers
-
-`upstream.json` is the authoritative upstream repository, release, commit, asset allow-list, and checksum record. Use the updater only to propose changes for review; it is not a release mechanism. The project license is MIT; see `LICENSE` and `THIRD-PARTY-NOTICES.md`.
-## Upstream Contribution
-
-A future upstream PR is reasonable for the reusable VS Code controls, contribution declarations, and Copilot adapter. Keep it in an integration subdirectory and reuse upstream assets during packaging. Do not replace upstream's root manifests or copy this repository wholesale: upstream [declined an Agent Plugins restructuring](https://github.com/DietrichGebert/ponytail/pull/911#issuecomment-5985831665) because of compatibility regressions in other clients. Publisher credentials and this repository's update/release automation stay with this integration. Propose the packaging approach to the maintainer before preparing a larger PR.
-
-## Current Validation Limits
-
-Extension-host tests cover activation, command registration, and mode persistence; they do not prove that a live Copilot request received the guidance or that delegated hooks ran. Verify those in a supported Copilot profile before release. Mode scope uses the first workspace folder in multi-root windows. Changes to the effective mode/configuration files refresh the status bar and instruction context within approximately one second; focus regain also refreshes them. Selecting Off cannot remove guidance already present in chat history.
-
-## Testing Updates Without a New Release
-
-Manual updater runs operate on the selected branch and its immutable dispatch commit. Scheduled runs still use the default branch. To exercise an update, create a disposable `codex/updater-smoke-*` branch, import an older real upstream release using `scripts/sync-upstream.cjs`, regenerate assets, commit, and push that branch. Dispatch **Upstream update** on it. The workflow should validate and open a draft PR targeting that test branch, named `upstream/<test-branch>/<release>`; main stays current.
-
-Check the generated patch, source hashes, test results, and PR base. Dispatch again before merging to verify it reuses the open PR. Merge only into the test branch, then dispatch again to verify an unchanged pin skips validation and proposal. Delete the test branches afterward. The updater is tested using its real jobs and credentials, not a mocked release or a main-branch downgrade.
+Raw upstream core/help sources are retained and verified by checksum. `upstream.json` records the imported release, commit, and checksums. The package includes `UPSTREAM-README.md` verbatim for reference; it also describes features for other hosts that this extension does not provide. A small, checked build adaptation supplies truthful VS Code controls while preserving the coding rules. Upstream benchmark figures are not promised results for Copilot; live model behavior depends on the host, model, and task.
