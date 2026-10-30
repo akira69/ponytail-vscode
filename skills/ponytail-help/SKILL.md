@@ -5,72 +5,36 @@ description: >
   Use for /ponytail-help, "ponytail help", "how do I use ponytail".
 ---
 
-# Ponytail Help
+# Ponytail in VS Code
 
-Display this reference card when invoked. One-shot, do NOT change mode,
-write flag files, or persist anything.
+Show this reference when asked for help. Do not change mode or write state files.
 
-## Levels
+## Select a mode
 
-| Level | Trigger | What change |
-|-------|---------|-------------|
-| **Lite** | `/ponytail lite` | Build what was asked, name the smaller option in one line. |
-| **Full** | `/ponytail` | The smallest complete change, a check where the logic needs one, and a reply that names what was skipped and any risk. Default. |
-| **Ultra** | `/ponytail ultra` | Also questions the request and pushes back before building. |
+Click the Ponytail status-bar item or run **Ponytail: Set Mode** from the Command Palette, then select Off, Lite, Full, or Ultra. The choice persists for this workspace. Full is the default when no saved selection or configured default exists.
 
-Level sticks until changed or session end.
+- Lite: build the requested change and mention a smaller option.
+- Full: make the smallest complete change and check meaningful logic.
+- Ultra: also question whether the work needs to exist.
+- Off: disable automatically contributed Ponytail guidance for future requests. Earlier chat context cannot be withdrawn; start a new chat if needed.
+
+Slash-skill invocations and chat messages do not change the extension's saved mode. If asked to change it in chat, explain the status-bar or Command Palette control; do not claim the setting changed.
 
 ## Skills
 
-| Skill | Trigger | What it does |
-|-------|---------|--------------|
-| **ponytail** | `/ponytail` | Lazy mode itself: least new code, clear replies that name skipped work and risks. |
-| **ponytail-review** | `/ponytail-review` | Quality review of a diff: bugs, security, load, missing tests, speed, what to cut. Each finding says what goes wrong and how to fix it. |
-| **ponytail-audit** | `/ponytail-audit` | The same quality review for the whole repo, ranked. |
-| **ponytail-debt** | `/ponytail-debt` | Harvest `shortcut:` comments into a tracked ledger. |
-| **ponytail-gain** | `/ponytail-gain` | Measured-impact scoreboard: less code, less cost, more speed. |
-| **ponytail-help** | `/ponytail-help` | This card. |
+Use `/ponytail` for the core guidance, `/ponytail-review` for a change review, `/ponytail-audit` for a repository audit, `/ponytail-debt` for shortcut tracking, `/ponytail-gain` for the upstream benchmark summary, and `/ponytail-help` for this reference. Benchmark figures are upstream measurements, not savings measured in this extension.
 
-In Codex CLI and the IDE extension, invoke skills with `$ponytail:ponytail`,
-`$ponytail:ponytail-review`, or `$ponytail:ponytail-help`. Claude Code and OpenCode use the
-slash-command forms above (OpenCode ships all six as slash commands).
+## Defaults and scope
 
-## Deactivate
+A saved workspace mode takes precedence over `PONYTAIL_DEFAULT_MODE`, then the Ponytail configuration file's `defaultMode`, then Full. The configuration file is `%APPDATA%/ponytail/config.json` on Windows or `~/.config/ponytail/config.json` on macOS/Linux, unless `XDG_CONFIG_HOME` selects another directory. Multi-root windows currently use the first workspace folder.
 
-Say "stop ponytail" or "normal mode". Resume anytime with `/ponytail`.
-`/ponytail off` also works.
+## Subagents
 
-## Band (Claude Code)
+Automatic subagent guidance requires the separate Copilot Agent Plugin with hooks enabled and Node.js on PATH. Its hook does not cover the built-in `general-purpose` agent; the parent must include the active guidance in that agent's task. Hooks provide instructions, not enforcement.
 
-`/ponytail band` hides the band above the prompt, the same command brings it back.
-`/ponytail band on` and `/ponytail band off` set it directly. The level stays.
-`/ponytail band import` adds your past Claude Code sessions (cost, agent time, tokens) to the board.
+## Updates
 
-## Configure Default Mode
+Marketplace installations can use VS Code extension auto-update when a new release is published. For a sideloaded build, install the newer package with **Extensions: Install from VSIX...**. Update the Agent Plugin separately through its plugin manager. An upstream update PR alone does not update installed copies.
 
-Default mode = `full`, auto-active every session. Change it:
-
-**Environment variable** (highest priority):
-```bash
-export PONYTAIL_DEFAULT_MODE=ultra
-```
-
-**Config file** (`~/.config/ponytail/config.json`, Windows: `%APPDATA%\ponytail\config.json`):
-```json
-{ "defaultMode": "lite" }
-```
-
-Set `"off"` to disable auto-activation on session start, activate manually
-with `/ponytail` when wanted.
-
-Resolution: env var > config file > `full`.
-
-## Update
-
-Enable auto-update once: open `/plugin`, go to Marketplaces, pick ponytail, Enable auto-update. Claude Code then pulls new versions at startup (run `/reload-plugins` when it prompts). Manual refresh: `/plugin marketplace update ponytail` then `/reload-plugins`.
-
-If `/plugin` is not recognized, your Claude Code is out of date. Update it (`npm install -g @anthropic-ai/claude-code@latest`, or `brew upgrade claude-code`) and restart. Other hosts use their own update flow.
-
-## More
-
-Full docs + examples: https://github.com/DietrichGebert/ponytail
+Integration: https://github.com/akira69/ponytail-vscode
+Upstream Ponytail: https://github.com/DietrichGebert/ponytail

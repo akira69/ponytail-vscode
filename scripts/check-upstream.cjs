@@ -2,6 +2,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const YAML = require('yaml');
+const { prepareSkill } = require('./prepare-skills.cjs');
 
 const root = path.resolve(__dirname, '..');
 const skillNames = ['ponytail', 'ponytail-review', 'ponytail-audit', 'ponytail-debt', 'ponytail-gain', 'ponytail-help'];
@@ -60,13 +61,13 @@ for (const name of skillNames) {
   if (skill) check(skill.metadata.name === name, `${relative}: name does not match folder`);
 }
 
-const raw = fs.existsSync(path.join(root, 'upstream/skills/ponytail/SKILL.md')) ? parseSkill('upstream/skills/ponytail/SKILL.md') : undefined;
-const packaged = fs.existsSync(path.join(root, 'skills/ponytail/SKILL.md')) ? parseSkill('skills/ponytail/SKILL.md') : undefined;
-if (raw && packaged) {
-  check(packaged.metadata['disable-model-invocation'] === true, 'core skill must set disable-model-invocation: true');
-  check(packaged.body === raw.body, 'core skill body differs from upstream');
-  const { 'disable-model-invocation': _ignored, ...rest } = packaged.metadata;
-  check(JSON.stringify(rest) === JSON.stringify(raw.metadata), 'core skill metadata differs from upstream beyond disable-model-invocation');
+for (const name of ['ponytail', 'ponytail-help']) {
+  try {
+    const expected = prepareSkill(name, read(`upstream/skills/${name}/SKILL.md`));
+    check(read(`skills/${name}/SKILL.md`) === expected, `${name}: packaged skill differs from the checked VS Code adaptation`);
+  } catch (error) {
+    errors.push(`${name}: ${error.message}`);
+  }
 }
 
 if (fs.existsSync(path.join(root, 'LICENSE'))) {

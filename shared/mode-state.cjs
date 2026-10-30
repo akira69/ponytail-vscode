@@ -1,7 +1,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
-const { getClaudeDir, getDefaultMode, normalizeMode } = require('../hooks/ponytail-config.js');
+const { getClaudeDir, getConfigPath, getDefaultMode, normalizeMode } = require('../hooks/ponytail-config.js');
 
 function sharedPath() {
   return path.join(getClaudeDir(), '.ponytail-active');
@@ -37,4 +37,11 @@ function getEffectiveMode(workspaceRoot) {
   return readMode(workspaceRoot) || getDefaultMode();
 }
 
-module.exports = { getEffectiveMode, readMode, writeMode };
+function watchMode(workspaceRoot, listener) {
+  const files = [workspacePath(workspaceRoot) || sharedPath(), getConfigPath()];
+  // Polling also observes files created after activation and survives atomic replacements.
+  for (const file of files) fs.watchFile(file, { persistent: false, interval: 1000 }, listener);
+  return { dispose() { for (const file of files) fs.unwatchFile(file, listener); } };
+}
+
+module.exports = { getEffectiveMode, readMode, writeMode, watchMode };

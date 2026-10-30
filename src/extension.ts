@@ -5,6 +5,7 @@ type Mode = 'off' | 'lite' | 'full' | 'ultra';
 type ModeState = {
   getEffectiveMode(workspaceRoot?: string): Mode;
   writeMode(mode: Mode, workspaceRoot?: string): void;
+  watchMode(workspaceRoot: string | undefined, listener: () => void): vscode.Disposable;
 };
 
 const modes: Array<vscode.QuickPickItem & { mode: Mode }> = [
@@ -32,10 +33,15 @@ export function activate(context: vscode.ExtensionContext): void {
     void vscode.commands.executeCommand('setContext', 'ponytail.mode', mode);
   };
 
+  let modeWatch = modeState.watchMode(workspaceRoot, refresh);
   context.subscriptions.push(
     status,
+    { dispose: () => modeWatch.dispose() },
+    vscode.window.onDidChangeWindowState(({ focused }) => { if (focused) refresh(); }),
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      modeWatch.dispose();
       workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      modeWatch = modeState.watchMode(workspaceRoot, refresh);
       refresh();
     }),
     vscode.commands.registerCommand('ponytail.setMode', async (requestedMode?: unknown) => {

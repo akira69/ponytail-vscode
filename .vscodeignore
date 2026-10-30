@@ -5,6 +5,7 @@ node_modules/**
 docs/**
 upstream/**
 scripts/**
+resources/**
 .superpowers/**
 .vscode/**
 .vscode-test/**

@@ -9,7 +9,6 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const repository = 'https://github.com/DietrichGebert/ponytail.git';
 const coreSkillNames = ['ponytail', 'ponytail-review', 'ponytail-audit', 'ponytail-debt', 'ponytail-gain', 'ponytail-help'];
-const body = (content) => content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
 const node = (script, args = [], options = {}) =>
   spawnSync(process.execPath, [path.join(root, 'scripts', script), ...args], { encoding: 'utf8', ...options });
 const sha256 = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -32,11 +31,9 @@ test('every upstream skill folder matches its SKILL.md name', () => {
   }
 });
 
-test('the core skill keeps upstream body and disables model auto-invocation', () => {
-  const raw = fs.readFileSync(path.join(root, 'upstream/skills/ponytail/SKILL.md'), 'utf8');
+test('the core skill disables model auto-invocation', () => {
   const packaged = fs.readFileSync(path.join(root, 'skills/ponytail/SKILL.md'), 'utf8');
   assert.match(packaged, /^disable-model-invocation:\s*true$/m);
-  assert.equal(body(packaged), body(raw));
 });
 
 test('the full MIT license is bundled', () => {
@@ -239,7 +236,7 @@ test('sync-upstream accepts an in-root destination named ..cache but rejects tra
 
 function checkCopy(tmp) {
   const copy = path.join(tmp, 'ext');
-  for (const dir of ['scripts', 'upstream', 'skills', 'hooks']) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
+  for (const dir of ['scripts', 'upstream', 'skills', 'hooks', 'resources']) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
   for (const file of ['upstream.json', 'LICENSE', 'UPSTREAM-README.md']) fs.copyFileSync(path.join(root, file), path.join(copy, file));
   fs.symlinkSync(path.join(root, 'node_modules'), path.join(copy, 'node_modules'), 'junction');
   return copy;
@@ -333,7 +330,7 @@ test('check-upstream fails when a hashed asset is modified', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pt-check-'));
   try {
     const copy = path.join(tmp, 'ext');
-    for (const dir of ['scripts', 'upstream', 'skills', 'hooks']) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
+    for (const dir of ['scripts', 'upstream', 'skills', 'hooks', 'resources']) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
     for (const file of ['upstream.json', 'LICENSE', 'UPSTREAM-README.md']) fs.copyFileSync(path.join(root, file), path.join(copy, file));
     fs.symlinkSync(path.join(root, 'node_modules'), path.join(copy, 'node_modules'), 'junction');
     const run = () => spawnSync(process.execPath, [path.join(copy, 'scripts/check-upstream.cjs')], { encoding: 'utf8' });
@@ -353,6 +350,9 @@ test('updater validates without write credentials and proposes only allow-listed
   assert.deepEqual(workflow.permissions, { contents: 'read' });
   assert.equal(workflow.concurrency['cancel-in-progress'], false);
   const { update, propose } = workflow.jobs;
+  assert.equal(update.steps[0].with.ref, `\${{ github.sha }}`);
+  assert.equal(propose.steps.at(-1).env.BASE, `\${{ github.ref_name }}`);
+  assert.match(propose.steps.at(-1).run, /branch="upstream\/\$BASE\/\$TAG"/);
   assert.equal(update.permissions, undefined);
   assert.equal(propose.needs, 'update');
   assert.equal(propose.if, "needs.update.outputs.changed == 'true'");
