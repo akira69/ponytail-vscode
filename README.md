@@ -6,7 +6,7 @@ Ponytail provides mode-aware coding guidance through two separate installable ar
 
 This is the community-maintained VS Code integration at [akira69/ponytail-vscode](https://github.com/akira69/ponytail-vscode), built directly from the official [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) project. The core guidance, official skills, shared helper modules, and upstream README are imported from a released upstream commit. `upstream.json` is the authoritative release, commit, and checksum record; it changes with each reviewed update. The upstream README is mirrored verbatim as `UPSTREAM-README.md` and included in the VSIX.
 
-The status-bar control, VS Code contributions, and Copilot `subagentStart` adapter are this project's integration layer. The copied upstream README describes Ponytail across agents, including features that are not provided by this VS Code integration.
+The status-bar control, VS Code contributions, and Copilot `subagentStart` adapter are this project's integration layer. Raw core and help skills remain under `upstream/skills/` with upstream checksums. `prepare:skills` replaces only the core session-control paragraph with truthful VS Code controls and delegation guidance, and produces VS Code-specific help from `resources/ponytail-help.md`. The coding rules remain upstream-derived. If the upstream control paragraph changes, preparation fails for maintainer review; it never silently guesses. The same prepared core feeds main-chat instructions and subagent guidance. The copied upstream README describes Ponytail across agents, including features that are not provided by this VS Code integration.
 
 ## Install
 
@@ -66,4 +66,10 @@ A future upstream PR is reasonable for the reusable VS Code controls, contributi
 
 ## Current Validation Limits
 
-Extension-host tests cover activation, command registration, and mode persistence; they do not prove that a live Copilot request received the guidance or that delegated hooks ran. Verify those in a supported Copilot profile before release. Mode scope uses the first workspace folder in multi-root windows. Another window or client can change the shared mode files without immediately refreshing an already-open status bar.
+Extension-host tests cover activation, command registration, and mode persistence; they do not prove that a live Copilot request received the guidance or that delegated hooks ran. Verify those in a supported Copilot profile before release. Mode scope uses the first workspace folder in multi-root windows. Changes to the effective mode/configuration files refresh the status bar and instruction context within approximately one second; focus regain also refreshes them. Selecting Off cannot remove guidance already present in chat history.
+
+## Testing Updates Without a New Release
+
+Manual updater runs operate on the selected branch and its immutable dispatch commit. Scheduled runs still use the default branch. To exercise an update, create a disposable `codex/updater-smoke-*` branch, import an older real upstream release using `scripts/sync-upstream.cjs`, regenerate assets, commit, and push that branch. Dispatch **Upstream update** on it. The workflow should validate and open a draft PR targeting that test branch, named `upstream/<test-branch>/<release>`; main stays current.
+
+Check the generated patch, source hashes, test results, and PR base. Dispatch again before merging to verify it reuses the open PR. Merge only into the test branch, then dispatch again to verify an unchanged pin skips validation and proposal. Delete the test branches afterward. The updater is tested using its real jobs and credentials, not a mocked release or a main-branch downgrade.
