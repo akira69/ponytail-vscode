@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/DietrichGebert/ponytail.git",
-  "release": "v5.3.2",
-  "commit": "16352ac229eb08a9598dcae48fe9f2b342567d86",
+  "release": "v5.3.3",
+  "commit": "7801d061243d7b753bad0e0b3c057cd250b11755",
   "assets": [
     {
       "source": "LICENSE",

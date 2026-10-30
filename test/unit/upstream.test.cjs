@@ -16,8 +16,8 @@ const sha256 = (file) => crypto.createHash('sha256').update(fs.readFileSync(file
 
 test('upstream pin is the approved release and commit', () => {
   const pin = JSON.parse(fs.readFileSync(path.join(root, 'upstream.json'), 'utf8'));
-  assert.equal(pin.release, 'v5.3.2');
-  assert.equal(pin.commit, '16352ac229eb08a9598dcae48fe9f2b342567d86');
+  assert.equal(pin.release, 'v5.3.3');
+  assert.equal(pin.commit, '7801d061243d7b753bad0e0b3c057cd250b11755');
   assert.equal(pin.repository, repository);
   assert.deepEqual(Object.keys(pin.assetSha256).sort(), pin.assets.map((asset) => asset.destination).sort());
   for (const asset of pin.assets) {
@@ -291,7 +291,8 @@ test('sync-upstream copies only whitelisted assets and records hashes', () => {
     assert.equal(pin.commit, commit);
     for (const asset of pin.assets) assert.equal(pin.assetSha256[asset.destination], sha256(path.join(destination, asset.destination)));
     const rootPin = JSON.parse(fs.readFileSync(path.join(root, 'upstream.json'), 'utf8'));
-    assert.equal(rootPin.release, 'v5.3.2');
+    assert.equal(rootPin.release, pinned().release);
+    assert.equal(rootPin.commit, pinned().commit);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }

@@ -32,8 +32,8 @@ test('extension docs identify and mirror the pinned upstream project', () => {
 
   assert.equal(manifest.homepage, 'https://github.com/DietrichGebert/ponytail');
   assert.match(readme, /https:\/\/github\.com\/DietrichGebert\/ponytail/);
-  assert.match(readme, /16352ac229eb08a9598dcae48fe9f2b342567d86/);
-  assert.match(readme, /https:\/\/github\.com\/DietrichGebert\/ponytail\/blob\/16352ac229eb08a9598dcae48fe9f2b342567d86\/README\.md/);
+  assert.match(readme, /7801d061243d7b753bad0e0b3c057cd250b11755/);
+  assert.match(readme, /https:\/\/github\.com\/DietrichGebert\/ponytail\/blob\/7801d061243d7b753bad0e0b3c057cd250b11755\/README\.md/);
   assert.doesNotMatch(readme, /\]\(UPSTREAM-README\.md\)/);
   assert.match(readme, /UPSTREAM-README\.md/);
   assert.ok(pin.assets.some(({ source, destination }) => source === 'README.md' && destination === 'UPSTREAM-README.md'));
