@@ -2,14 +2,16 @@
   "name": "ponytail-dietrichgebert-sync",
   "displayName": "Ponytail Copilot Sync",
   "publisher": "Finch13",
-  "version": "0.1.0",
-  "description": "Ponytail for VS Code and GitHub Copilot",
+  "version": "0.1.1",
+  "description": "Community integration of DietrichGebert's Ponytail guidance for GitHub Copilot: persistent modes, review and audit skills.",
   "homepage": "https://github.com/akira69/ponytail-vscode#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/akira69/ponytail-vscode.git"
   },
-  "bugs": { "url": "https://github.com/akira69/ponytail-vscode/issues" },
+  "bugs": {
+    "url": "https://github.com/akira69/ponytail-vscode/issues"
+  },
   "license": "MIT",
   "engines": {
     "vscode": "^1.142.0"
@@ -95,5 +97,15 @@
     "mocha": "^12.0.3",
     "typescript": "^7.0.2",
     "yaml": "^2.9.1"
-  }
+  },
+  "icon": "media/ponytail-integration.png",
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "ponytail",
+    "copilot",
+    "code review",
+    "agent skills"
+  ]
 }
