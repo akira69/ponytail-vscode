@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "description": "Ponytail skills and subagent guidance for GitHub Copilot",
   "license": "MIT",
-  "homepage": "https://github.com/DietrichGebert/ponytail",
+  "homepage": "https://github.com/akira69/ponytail-vscode",
   "author": {
-    "name": "DietrichGebert"
+    "name": "akira69 (integration); DietrichGebert (upstream Ponytail)"
   }
 }

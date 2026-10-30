@@ -18,7 +18,7 @@ function parseArgs(argv) {
 }
 
 function within(base, relative, label) {
-  if (typeof relative !== 'string' || !relative || path.isAbsolute(relative) || /^[a-zA-Z]:/.test(relative)) {
+  if (typeof relative !== 'string' || !relative || relative.includes('\\') || path.isAbsolute(relative) || /^[a-zA-Z]:/.test(relative)) {
     throw new Error(`Invalid ${label} path: ${relative}`);
   }
   const resolved = path.resolve(base, relative);

@@ -1,7 +1,7 @@
 src/**
 test/**
 node_modules/**
-.github/workflows/**
+.github/**
 docs/**
 upstream/**
 scripts/**
@@ -12,3 +12,5 @@ out/**
 package-lock.json
 tsconfig.json
 esbuild.mjs
+biome.json
+.upstream-review/**

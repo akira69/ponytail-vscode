@@ -17,6 +17,7 @@ if (isTestMode) {
   await esbuild.build({
     ...baseConfig,
     entryPoints: ['test/suite/index.ts'],
+    external: ['vscode', 'mocha'],
     outfile: 'out/test/suite/index.js',
   });
 

@@ -4,7 +4,12 @@
   "publisher": "Finch13",
   "version": "0.1.0",
   "description": "Ponytail for VS Code and GitHub Copilot",
-  "homepage": "https://github.com/DietrichGebert/ponytail",
+  "homepage": "https://github.com/akira69/ponytail-vscode#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akira69/ponytail-vscode.git"
+  },
+  "bugs": { "url": "https://github.com/akira69/ponytail-vscode/issues" },
   "license": "MIT",
   "engines": {
     "vscode": "^1.142.0"
@@ -14,6 +19,7 @@
     "onStartupFinished"
   ],
   "scripts": {
+    "lint": "biome lint src shared scripts test com.github.copilot esbuild.mjs",
     "prepare:skills": "node scripts/prepare-skills.cjs",
     "check:upstream": "node scripts/check-upstream.cjs",
     "check:plugin": "node scripts/check-plugin.cjs",
@@ -36,31 +42,57 @@
       }
     ],
     "chatSkills": [
-      { "path": "./skills/ponytail/SKILL.md" },
-      { "path": "./skills/ponytail-review/SKILL.md" },
-      { "path": "./skills/ponytail-audit/SKILL.md" },
-      { "path": "./skills/ponytail-debt/SKILL.md" },
-      { "path": "./skills/ponytail-gain/SKILL.md" },
-      { "path": "./skills/ponytail-help/SKILL.md" }
+      {
+        "path": "./skills/ponytail/SKILL.md"
+      },
+      {
+        "path": "./skills/ponytail-review/SKILL.md"
+      },
+      {
+        "path": "./skills/ponytail-audit/SKILL.md"
+      },
+      {
+        "path": "./skills/ponytail-debt/SKILL.md"
+      },
+      {
+        "path": "./skills/ponytail-gain/SKILL.md"
+      },
+      {
+        "path": "./skills/ponytail-help/SKILL.md"
+      }
     ],
     "chatAgents": [
-      { "path": "./com.github.copilot/agents/ponytail-reviewer.agent.md" },
-      { "path": "./com.github.copilot/agents/ponytail-researcher.agent.md" }
+      {
+        "path": "./com.github.copilot/agents/ponytail-reviewer.agent.md"
+      },
+      {
+        "path": "./com.github.copilot/agents/ponytail-researcher.agent.md"
+      }
     ],
     "chatInstructions": [
-      { "path": "./generated/instructions/ponytail-lite.instructions.md", "when": "ponytail.mode == 'lite'" },
-      { "path": "./generated/instructions/ponytail-full.instructions.md", "when": "ponytail.mode == 'full'" },
-      { "path": "./generated/instructions/ponytail-ultra.instructions.md", "when": "ponytail.mode == 'ultra'" }
+      {
+        "path": "./generated/instructions/ponytail-lite.instructions.md",
+        "when": "ponytail.mode == 'lite'"
+      },
+      {
+        "path": "./generated/instructions/ponytail-full.instructions.md",
+        "when": "ponytail.mode == 'full'"
+      },
+      {
+        "path": "./generated/instructions/ponytail-ultra.instructions.md",
+        "when": "ponytail.mode == 'ultra'"
+      }
     ]
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.6.4",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.10.0",
     "@types/vscode": "^1.99.0",
     "@vscode/test-electron": "^2.4.1",
     "@vscode/vsce": "^3.2.1",
-    "esbuild": "^0.24.2",
-    "mocha": "^10.8.2",
+    "esbuild": "^0.28.2",
+    "mocha": "^12.0.3",
     "typescript": "^5.7.3",
     "yaml": "^2.9.1"
   }

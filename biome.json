@@ -1,0 +1,10 @@
+{
+  "linter": {
+    "rules": {
+      "preset": "none",
+      "correctness": { "preset": "recommended" },
+      "suspicious": { "preset": "recommended" },
+      "security": { "preset": "recommended" }
+    }
+  }
+}

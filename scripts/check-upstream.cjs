@@ -28,7 +28,7 @@ if (pin) {
   const safe = [];
   const seen = new Set();
   const confined = (value) => {
-    if (typeof value !== 'string' || !value || path.isAbsolute(value) || /^[a-zA-Z]:/.test(value)) return undefined;
+    if (typeof value !== 'string' || !value || value.includes('\\') || path.isAbsolute(value) || /^[a-zA-Z]:/.test(value)) return undefined;
     const rel = path.relative(root, path.resolve(root, value));
     return !rel || rel === '..' || rel.startsWith('..' + path.sep) || path.isAbsolute(rel) ? undefined : rel;
   };

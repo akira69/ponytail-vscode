@@ -1,14 +1,20 @@
 name: Upstream update
 on:
   schedule:
-    - cron: '17 10 * * 1'
+    - cron: '17 10 * * *'
   workflow_dispatch:
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+concurrency:
+  group: upstream-update
+  cancel-in-progress: false
 jobs:
   update:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.changes.outputs.changed }}
+      tag: ${{ steps.upstream.outputs.tag }}
+      base: ${{ steps.upstream.outputs.base }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -24,38 +30,90 @@ jobs:
         run: |
           set -euo pipefail
           tag="$(gh api repos/DietrichGebert/ponytail/releases/latest --jq .tag_name)"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 1
           source="$RUNNER_TEMP/ponytail-upstream"
           git clone --filter=blob:none --no-checkout https://github.com/DietrichGebert/ponytail.git "$source"
           git -C "$source" fetch --depth=1 origin "refs/tags/$tag:refs/tags/$tag"
           commit="$(git -C "$source" rev-parse "$tag^{commit}")"
           git -C "$source" checkout --detach "$commit"
           printf 'tag=%s\ncommit=%s\nsource=%s\n' "$tag" "$commit" "$source" >> "$GITHUB_OUTPUT"
+          printf 'base=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Import allow-listed upstream assets
         env:
           SOURCE: ${{ steps.upstream.outputs.source }}
           TAG: ${{ steps.upstream.outputs.tag }}
           COMMIT: ${{ steps.upstream.outputs.commit }}
         run: node scripts/sync-upstream.cjs --source "$SOURCE" --release "$TAG" --commit "$COMMIT"
+      - name: Detect a changed pin
+        id: changes
+        run: |
+          if git diff --quiet -- upstream.json; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
       - name: Install dependencies
+        if: steps.changes.outputs.changed == 'true'
         run: npm ci
       - name: Prepare skills
+        if: steps.changes.outputs.changed == 'true'
         run: npm run prepare:skills
       - name: Generate instructions
+        if: steps.changes.outputs.changed == 'true'
         run: npm run generate:instructions
       - name: Check upstream pin
+        if: steps.changes.outputs.changed == 'true'
         run: npm run check:upstream
       - name: Check plugin
+        if: steps.changes.outputs.changed == 'true'
         run: npm run check:plugin
+      - name: Lint and audit
+        if: steps.changes.outputs.changed == 'true'
+        run: npm run lint && npm audit --audit-level=moderate
       - name: Test
-        run: npm test
+        if: steps.changes.outputs.changed == 'true'
+        run: xvfb-run -a npm test
       - name: Package
+        if: steps.changes.outputs.changed == 'true'
         run: npm run package
+      - name: Save validated changes
+        if: steps.changes.outputs.changed == 'true'
+        run: git diff --binary -- upstream.json upstream UPSTREAM-README.md LICENSE skills hooks generated/instructions > upstream-update.patch
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: steps.changes.outputs.changed == 'true'
+        with:
+          name: upstream-update
+          path: upstream-update.patch
+          if-no-files-found: error
+
+  propose:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ needs.update.outputs.base }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: upstream-update
+          path: ${{ runner.temp }}/upstream-update
+      - name: Apply only the imported asset paths
+        run: |
+          git apply --index --include=upstream.json --include='upstream/*' --include=UPSTREAM-README.md --include=LICENSE --include='skills/*' --include='hooks/*' --include='generated/instructions/*' -- "$RUNNER_TEMP/upstream-update/upstream-update.patch"
       - name: Open review pull request
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.upstream.outputs.tag }}
+          TAG: ${{ needs.update.outputs.tag }}
+          BASE: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 1
+          if git diff --cached --quiet; then exit 0; fi
           branch="upstream/$TAG"
           gh auth setup-git
           existing="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
@@ -63,17 +121,17 @@ jobs:
             echo "Open pull request #$existing already covers $TAG; nothing to do."
             exit 0
           fi
-          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
-            echo "Remote branch $branch already exists but has no open pull request; refusing to overwrite it." >&2
-            exit 1
-          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git switch -c "$branch"
-          git add upstream.json upstream UPSTREAM-README.md LICENSE skills hooks generated/instructions
-          if git diff --cached --quiet; then exit 0; fi
           git commit -m "chore: update Ponytail assets to $TAG"
-          git push origin "HEAD:refs/heads/$branch"
-          base="$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)"
+          remote="$(git ls-remote --heads origin "$branch")"
+          if [ -n "$remote" ]; then
+            git fetch origin "$branch"
+            git diff --exit-code HEAD FETCH_HEAD
+          else
+            git push origin "HEAD:refs/heads/$branch"
+          fi
           body="Updates the pinned Ponytail assets. Validation ran in the update workflow before this PR was opened. A pull request created with GITHUB_TOKEN does not trigger pull_request or push workflows, so close and reopen this PR to run CI. A maintainer must review before merge or release."
-          gh pr create --draft --base "$base" --head "$branch" --title "chore: update Ponytail assets to $TAG" --body "$body"
+          printf '%s\n' "$body" > "$RUNNER_TEMP/upstream-pr-body.md"
+          gh pr create --draft --base "$BASE" --head "$branch" --title "chore: update Ponytail assets to $TAG" --body-file "$RUNNER_TEMP/upstream-pr-body.md"

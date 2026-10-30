@@ -14,10 +14,10 @@ const node = (script, args = [], options = {}) =>
   spawnSync(process.execPath, [path.join(root, 'scripts', script), ...args], { encoding: 'utf8', ...options });
 const sha256 = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
-test('upstream pin is the approved release and commit', () => {
+test('upstream pin records a release, immutable commit, and matching asset hashes', () => {
   const pin = JSON.parse(fs.readFileSync(path.join(root, 'upstream.json'), 'utf8'));
-  assert.equal(pin.release, 'v5.3.3');
-  assert.equal(pin.commit, '7801d061243d7b753bad0e0b3c057cd250b11755');
+  assert.match(pin.release, /^v\d+\.\d+\.\d+$/);
+  assert.match(pin.commit, /^[a-f0-9]{40}$/);
   assert.equal(pin.repository, repository);
   assert.deepEqual(Object.keys(pin.assetSha256).sort(), pin.assets.map((asset) => asset.destination).sort());
   for (const asset of pin.assets) {
@@ -240,7 +240,7 @@ test('sync-upstream accepts an in-root destination named ..cache but rejects tra
 function checkCopy(tmp) {
   const copy = path.join(tmp, 'ext');
   for (const dir of ['scripts', 'upstream', 'skills', 'hooks']) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
-  for (const file of ['upstream.json', 'LICENSE']) fs.copyFileSync(path.join(root, file), path.join(copy, file));
+  for (const file of ['upstream.json', 'LICENSE', 'UPSTREAM-README.md']) fs.copyFileSync(path.join(root, file), path.join(copy, file));
   fs.symlinkSync(path.join(root, 'node_modules'), path.join(copy, 'node_modules'), 'junction');
   return copy;
 }
@@ -275,6 +275,7 @@ test('check-upstream rejects malformed manifest paths without reading outside th
 });
 
 test('sync-upstream copies only whitelisted assets and records hashes', () => {
+  const originalPin = pinned();
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pt-sync-'));
   try {
     const source = path.join(tmp, 's');
@@ -291,8 +292,7 @@ test('sync-upstream copies only whitelisted assets and records hashes', () => {
     assert.equal(pin.commit, commit);
     for (const asset of pin.assets) assert.equal(pin.assetSha256[asset.destination], sha256(path.join(destination, asset.destination)));
     const rootPin = JSON.parse(fs.readFileSync(path.join(root, 'upstream.json'), 'utf8'));
-    assert.equal(rootPin.release, pinned().release);
-    assert.equal(rootPin.commit, pinned().commit);
+    assert.deepEqual(rootPin, originalPin);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
@@ -345,41 +345,37 @@ test('check-upstream fails when a hashed asset is modified', () => {
   }
 });
 
-test('upstream-update workflow only opens a reviewable PR after full validation', () => {
+test('updater validates without write credentials and proposes only allow-listed changes', () => {
   const YAML = require('yaml');
   const workflow = YAML.parse(fs.readFileSync(path.join(root, '.github/workflows/upstream-update.yml'), 'utf8'));
-  assert.ok('schedule' in workflow.on);
+  assert.equal(workflow.on.schedule[0].cron, '17 10 * * *');
   assert.ok('workflow_dispatch' in workflow.on);
-  assert.deepEqual(workflow.permissions, { contents: 'write', 'pull-requests': 'write' });
-  const steps = workflow.jobs.update.steps;
-  const actionRefPattern = /^[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)+@[0-9a-f]{40}$/;
-  assert.doesNotMatch(`actions:evil/checkout@${'a'.repeat(40)}`, actionRefPattern, 'action owners must use valid GitHub characters');
-  assert.ok(steps.filter((step) => 'uses' in step).every((step) => actionRefPattern.test(step.uses)), 'every workflow action must be pinned to an immutable commit SHA');
-  assert.match(steps[0].uses, /^actions\/checkout@[0-9a-f]{40}$/);
-  assert.equal(steps[0].with.ref, '${{ github.event.repository.default_branch }}');
-  assert.equal(steps[0].with['persist-credentials'], false);
-  const index = (pattern) => steps.findIndex((step) => pattern.test(step.run || ''));
-  const resolve = steps[index(/releases\/latest/)];
-  assert.match(resolve.run, /git -C "\$source" checkout --detach "\$commit"/);
-  assert.ok(resolve.run.indexOf('fetch --depth=1') < resolve.run.indexOf('checkout --detach'));
-  const order = [/scripts\/sync-upstream\.cjs/, /^npm ci$/m, /^npm run prepare:skills$/m, /^npm run generate:instructions$/m, /^npm run check:upstream$/m, /^npm run check:plugin$/m, /^npm test$/m, /^npm run package$/m, /gh pr create/].map(index);
-  assert.ok(order.every((at) => at >= 0), String(order));
-  assert.ok(order.every((at, i) => i === 0 || at > order[i - 1]), `steps not strictly ordered: ${order}`);
-  assert.ok(steps[order[0]].run.includes('--commit'));
-  const pr = steps[order[order.length - 1]].run;
-  const at = (pattern) => pr.search(pattern);
-  const positions = [/gh auth setup-git/, /gh pr list[^\n]*--state open/, /git ls-remote --exit-code --heads origin/, /git push origin/, /gh pr create/].map(at);
-  assert.ok(positions.every((p) => p >= 0), String(positions));
-  assert.ok(positions.every((p, i) => i === 0 || p > positions[i - 1]), `PR step not ordered: ${positions}`);
-  assert.match(pr, /\bexit 0\b/);
-  assert.match(pr, /exit 1/);
-  assert.match(pr, /already exists[\s\S]*no open pull request|no open pull request[\s\S]*already exists/i);
-  assert.doesNotMatch(pr, /--force|--force-with-lease|\s-f\s|\+HEAD|\bgit push[^\n]*\+/);
-  assert.match(pr, /does not trigger/i);
-  assert.match(pr, /close and reopen/i);
-  assert.doesNotMatch(pr, /CI (will|should) (run|start)|triggers? (CI|workflows)(?! )|automatically (run|trigger)/i);
-  assert.ok(!steps.slice(0, order[order.length - 1]).some((step) => /gh auth setup-git|git push/.test(step.run || '')));
-  const text = steps.map((step) => `${step.uses || ''}\n${step.run || ''}`).join('\n');
-  assert.doesNotMatch(text, /gh pr merge|vsce publish|gh release|action-gh-release|marketplace/i);
-  assert.doesNotMatch(text, /--ready|auto-merge/i);
+  assert.deepEqual(workflow.permissions, { contents: 'read' });
+  assert.equal(workflow.concurrency['cancel-in-progress'], false);
+  const { update, propose } = workflow.jobs;
+  assert.equal(update.permissions, undefined);
+  assert.equal(propose.needs, 'update');
+  assert.equal(propose.if, "needs.update.outputs.changed == 'true'");
+  assert.deepEqual(propose.permissions, { contents: 'write', 'pull-requests': 'write' });
+  const steps = [...update.steps, ...propose.steps];
+  for (const step of steps.filter((step) => step.uses)) {
+    assert.match(step.uses, /^[\w.-]+\/[\w.-]+@[a-f0-9]{40}$/);
+  }
+  for (const job of [update, propose]) assert.equal(job.steps[0].with['persist-credentials'], false);
+  const validation = update.steps.map((step) => step.run || '').join('\n');
+  assert.match(validation, /git diff --quiet -- upstream\.json/);
+  assert.match(validation, /xvfb-run -a npm test/);
+  assert.match(validation, /npm run lint && npm audit/);
+  assert.ok(validation.indexOf('xvfb-run -a npm test') < validation.indexOf('git diff --binary'));
+  assert.doesNotMatch(validation, /gh auth setup-git|git push/);
+  const proposal = propose.steps.map((step) => step.run || '').join('\n');
+  assert.match(proposal, /git apply --index --include=upstream\.json/);
+  assert.match(proposal, /--include=UPSTREAM-README\.md/);
+  assert.doesNotMatch(proposal, /\bnpm\b|\bnode\b|--force/);
+  assert.ok(proposal.indexOf('git diff --cached --quiet') < proposal.indexOf('git ls-remote'));
+  assert.match(proposal, /git diff --exit-code HEAD FETCH_HEAD/);
+  assert.match(proposal, /gh pr create --draft/);
+  assert.match(proposal, /does not trigger/);
+  assert.match(proposal, /close and reopen/);
+  assert.doesNotMatch(validation + proposal, /gh pr merge|vsce publish|gh release/);
 });

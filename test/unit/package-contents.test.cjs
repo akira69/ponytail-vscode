@@ -30,10 +30,9 @@ test('extension docs identify and mirror the pinned upstream project', () => {
   const pin = JSON.parse(read('upstream.json'));
   const readme = read('README.md');
 
-  assert.equal(manifest.homepage, 'https://github.com/DietrichGebert/ponytail');
+  assert.equal(manifest.repository.url, 'https://github.com/akira69/ponytail-vscode.git');
   assert.match(readme, /https:\/\/github\.com\/DietrichGebert\/ponytail/);
-  assert.match(readme, /7801d061243d7b753bad0e0b3c057cd250b11755/);
-  assert.match(readme, /https:\/\/github\.com\/DietrichGebert\/ponytail\/blob\/7801d061243d7b753bad0e0b3c057cd250b11755\/README\.md/);
+  assert.match(readme, /upstream\.json/);
   assert.doesNotMatch(readme, /\]\(UPSTREAM-README\.md\)/);
   assert.match(readme, /UPSTREAM-README\.md/);
   assert.ok(pin.assets.some(({ source, destination }) => source === 'README.md' && destination === 'UPSTREAM-README.md'));
@@ -56,8 +55,8 @@ test('VSIX ignore rules exclude development content but keep runtime and plugin 
   const ignored = new Set(read('.vscodeignore').split(/\r?\n/).map((line) => line.trim()).filter(Boolean));
   for (const file of [
     'upstream/**', 'scripts/**', '.superpowers/**', '.vscode/**', '.vscode-test/**',
-    'out/**', 'test/**', 'src/**', 'node_modules/**', '.github/workflows/**',
-    'docs/**', 'package-lock.json', 'tsconfig.json', 'esbuild.mjs',
+    'out/**', 'test/**', 'src/**', 'node_modules/**', '.github/**',
+    'docs/**', 'package-lock.json', 'tsconfig.json', 'esbuild.mjs', 'biome.json',
   ]) {
     assert.ok(ignored.has(file), `${file} must be excluded from the VSIX`);
   }
@@ -116,7 +115,7 @@ test('upstream updater opens a review PR without publishing or merging', () => {
 
   assert.doesNotMatch(actions, /^\s*uses:\s*[^\n]*(?:publish|merge)/im);
   assert.doesNotMatch(actions, /\b(?:npm|vsce)\s+publish\b|\bgh\s+pr\s+merge\b|\bgit\s+merge\b/i);
-  assert.match(actions, /git add[^\n]*UPSTREAM-README\.md/);
+  assert.match(actions, /git apply[^\n]*--include=UPSTREAM-README\.md/);
 });
 
 test('extension CI waits for unit tests and packages the compiled output after extension tests', () => {
@@ -127,8 +126,8 @@ test('extension CI waits for unit tests and packages the compiled output after e
   const pluginCommands = unitSteps.filter((run) => run.includes('check:plugin'));
   const pluginCheckIndex = unitSteps.indexOf('npm run check:plugin');
   const unitTestIndex = unitSteps.indexOf('npm run test:unit');
-  const extensionTestIndex = steps.indexOf('npm run test:extension');
-  const packageIndex = steps.indexOf('npm exec -- vsce package --allow-missing-repository');
+  const extensionTestIndex = steps.indexOf('xvfb-run -a npm run test:extension');
+  const packageIndex = steps.indexOf('npm exec -- vsce package');
   const packageCommands = steps.filter((run) => run.includes('vsce package'));
 
   assert.ok([].concat(job.needs || []).includes('unit-tests'));
@@ -137,7 +136,7 @@ test('extension CI waits for unit tests and packages the compiled output after e
   assert.ok(unitTestIndex > pluginCheckIndex, 'the plugin check must run before unit tests');
   assert.ok(!steps.some((run) => run.includes('check:plugin')), 'extension-tests must not repeat the plugin check');
   assert.ok(extensionTestIndex >= 0, 'extension-tests must run the extension tests');
-  assert.deepEqual(packageCommands, ['npm exec -- vsce package --allow-missing-repository'], 'extension-tests must run exactly one standalone VSIX packaging command');
+  assert.deepEqual(packageCommands, ['npm exec -- vsce package'], 'extension-tests must run exactly one standalone VSIX packaging command');
   assert.ok(packageIndex > extensionTestIndex, 'packaging must happen after extension tests');
   assert.ok(!steps.some((run) => /\bnpm\s+run\s+package(?::[\w-]+)?(?:\s|$)/.test(run)), 'CI must not invoke a package script in extension-tests');
   assert.ok(!steps.some((run) => /\bnpm\s+run\s+compile(?::[\w-]+)?(?:\s|$)/.test(run)), 'CI must not add a separate compile step in extension-tests');
