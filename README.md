@@ -32,6 +32,16 @@ No separate Ponytail API key or service is required. Copilot has its own access 
 
 Your selection persists for the workspace. Multiple windows observe mode changes; multi-root windows currently use the first folder. Changing mode through a chat message or `/ponytail` does **not** change the saved setting. Off cannot remove instructions already in chat history; start a new chat when you need a clean context.
 
+## Why no `@ponytail` or dedicated Ponytail agent?
+
+Ponytail supplies guidance to the Copilot agent you already use. Selecting Lite, Full, or Ultra enables the corresponding chat instructions automatically in supported Copilot chat. You do not need to switch agents or type `/ponytail` before every request.
+
+- **`/ponytail`** explicitly loads the core skill into the current conversation. Other slash skills, such as `/ponytail-review`, request a specific workflow. They do not change the saved mode. See [skills as slash commands](https://code.visualstudio.com/docs/agent-customization/agent-skills#use-skills-as-slash-commands).
+- **`@ponytail`** would address a separate chat participant, which this extension does not register. Microsoft has deprecated extension-provided chat participants: they are unsupported in the newer Copilot harness and retained only for Local-harness compatibility. See [Microsoft's migration guidance](https://code.visualstudio.com/docs/agent-customization/migrate-customizations#replace-chat-participants).
+- **A dedicated Ponytail agent** would be another role in the Agent dropdown. That is useful when a workflow needs its own tools or model, but ordinary Ponytail guidance does not: the selected mode adds it to your existing workflow. An extra general-purpose agent would duplicate that role and add another selection to maintain.
+
+The optional reviewer and researcher agents below serve focused roles; neither is required to use Ponytail's persistent guidance.
+
 ## Included skills
 
 | Skill | Use it for |
