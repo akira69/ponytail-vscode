@@ -139,6 +139,7 @@ test('extension CI waits for unit tests and packages the compiled output after e
   const job = workflow.jobs['extension-tests'];
   const steps = job.steps.map(({ run }) => run).filter(Boolean);
   const pluginCommands = unitSteps.filter((run) => run.includes('check:plugin'));
+  const auditCommands = unitSteps.filter((run) => run.startsWith('npm audit '));
   const pluginCheckIndex = unitSteps.indexOf('npm run check:plugin');
   const unitTestIndex = unitSteps.indexOf('npm run test:unit');
   const extensionTestIndex = steps.indexOf('xvfb-run -a npm run test:extension');
@@ -147,6 +148,10 @@ test('extension CI waits for unit tests and packages the compiled output after e
 
   assert.ok([].concat(job.needs || []).includes('unit-tests'));
   assert.deepEqual(pluginCommands, ['npm run check:plugin'], 'unit-tests must run the plugin check exactly once as a standalone command');
+  assert.deepEqual(auditCommands, [
+    'npm audit --omit=dev --audit-level=moderate',
+    'npm audit --audit-level=high',
+  ], 'CI must block production moderate advisories and high-severity advisories across all dependencies');
   assert.ok(pluginCheckIndex >= 0, 'unit-tests must run the plugin check');
   assert.ok(unitTestIndex > pluginCheckIndex, 'the plugin check must run before unit tests');
   assert.ok(!steps.some((run) => run.includes('check:plugin')), 'extension-tests must not repeat the plugin check');
