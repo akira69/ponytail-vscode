@@ -26,13 +26,13 @@ test('upstream pin records a release, immutable commit, and matching asset hashe
 
 test('every upstream skill folder matches its SKILL.md name', () => {
   for (const name of coreSkillNames) {
-    const skill = fs.readFileSync(path.join(root, 'skills', name, 'SKILL.md'), 'utf8');
+    const skill = fs.readFileSync(path.join(root, 'vscode/skills', name, 'SKILL.md'), 'utf8');
     assert.match(skill, new RegExp(`name:\\s*${name}\\b`));
   }
 });
 
 test('the core skill disables model auto-invocation', () => {
-  const packaged = fs.readFileSync(path.join(root, 'skills/ponytail/SKILL.md'), 'utf8');
+  const packaged = fs.readFileSync(path.join(root, 'vscode/skills/ponytail/SKILL.md'), 'utf8');
   assert.match(packaged, /^disable-model-invocation:\s*true$/m);
 });
 
@@ -54,7 +54,7 @@ test('generate-instructions writes exactly three deterministic mode files', () =
   assert.equal(result.status, 0, result.stderr);
   const files = fs.readdirSync(outputDir).sort();
   assert.deepEqual(files, ['ponytail-full.instructions.md', 'ponytail-lite.instructions.md', 'ponytail-ultra.instructions.md']);
-  const { getPonytailInstructions } = require('../../hooks/ponytail-instructions.js');
+  const { getPonytailInstructions } = require('../../hooks/vscode-ponytail-instructions.js');
   const first = {};
   for (const mode of ['lite', 'full', 'ultra']) {
     const content = fs.readFileSync(path.join(outputDir, `ponytail-${mode}.instructions.md`), 'utf8');
@@ -236,7 +236,7 @@ test('sync-upstream accepts an in-root destination named ..cache but rejects tra
 
 function checkCopy(tmp) {
   const copy = path.join(tmp, 'ext');
-  for (const dir of ['scripts', 'upstream', 'skills', 'hooks', 'resources']) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
+  for (const dir of ['scripts', 'upstream', 'vscode/skills', 'hooks', 'resources']) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
   for (const file of ['upstream.json', 'LICENSE', 'UPSTREAM-README.md']) fs.copyFileSync(path.join(root, file), path.join(copy, file));
   fs.symlinkSync(path.join(root, 'node_modules'), path.join(copy, 'node_modules'), 'junction');
   return copy;
@@ -330,12 +330,12 @@ test('check-upstream fails when a hashed asset is modified', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pt-check-'));
   try {
     const copy = path.join(tmp, 'ext');
-    for (const dir of ['scripts', 'upstream', 'skills', 'hooks', 'resources']) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
+    for (const dir of ['scripts', 'upstream', 'vscode/skills', 'hooks', 'resources']) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
     for (const file of ['upstream.json', 'LICENSE', 'UPSTREAM-README.md']) fs.copyFileSync(path.join(root, file), path.join(copy, file));
     fs.symlinkSync(path.join(root, 'node_modules'), path.join(copy, 'node_modules'), 'junction');
     const run = () => spawnSync(process.execPath, [path.join(copy, 'scripts/check-upstream.cjs')], { encoding: 'utf8' });
     assert.equal(run().status, 0);
-    fs.appendFileSync(path.join(copy, 'skills/ponytail-help/SKILL.md'), '\ntampered\n');
+    fs.appendFileSync(path.join(copy, 'vscode/skills/ponytail-help/SKILL.md'), '\ntampered\n');
     assert.notEqual(run().status, 0);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
@@ -365,12 +365,15 @@ test('updater validates without write credentials and proposes only allow-listed
   const validation = update.steps.map((step) => step.run || '').join('\n');
   assert.match(validation, /git diff --quiet -- upstream\.json/);
   assert.match(validation, /xvfb-run -a npm test/);
-  assert.match(validation, /npm run lint && npm audit/);
+  assert.match(validation, /npm run lint && npm audit --omit=dev --audit-level=moderate && npm audit --audit-level=high/);
+  assert.match(validation, /git diff --binary -- .*vscode\/skills/);
   assert.ok(validation.indexOf('xvfb-run -a npm test') < validation.indexOf('git diff --binary'));
   assert.doesNotMatch(validation, /gh auth setup-git|git push/);
   const proposal = propose.steps.map((step) => step.run || '').join('\n');
   assert.match(proposal, /git apply --index --include=upstream\.json/);
   assert.match(proposal, /--include=UPSTREAM-README\.md/);
+  assert.match(proposal, /--include='vscode\/skills\/\*'/);
+  assert.doesNotMatch(proposal, /--include='skills\/\*'/);
   assert.doesNotMatch(proposal, /\bnpm\b|\bnode\b|--force/);
   assert.ok(proposal.indexOf('git diff --cached --quiet') < proposal.indexOf('git ls-remote'));
   assert.match(proposal, /git diff --exit-code HEAD FETCH_HEAD/);

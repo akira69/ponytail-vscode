@@ -13,6 +13,15 @@ test('package manifest contributes the expected VS Code resources', () => {
 
   assert.equal(manifest.main, './dist/extension.js');
   assert.equal(manifest.contributes.chatSkills.length, 6);
+    assert.deepEqual(manifest.contributes.chatSkills.map(({ path }) => path).sort(), [
+      './vscode/skills/ponytail-audit/SKILL.md',
+      './vscode/skills/ponytail-debt/SKILL.md',
+      './vscode/skills/ponytail-gain/SKILL.md',
+      './vscode/skills/ponytail-help/SKILL.md',
+      './vscode/skills/ponytail-review/SKILL.md',
+      './vscode/skills/ponytail/SKILL.md',
+    ]);
+    assert.equal(fs.existsSync(path.join(root, 'skills')), false, 'root skills would be auto-discovered by the Agent Plugin');
   assert.equal(manifest.contributes.chatInstructions.length, 3);
   assert.equal(manifest.contributes.chatAgents.length, 2);
   assert.deepEqual(manifest.contributes.chatAgents.map(({ path }) => path).sort(), [
@@ -43,7 +52,9 @@ test('extension docs identify and mirror the pinned upstream project', () => {
   assert.equal(manifest.repository.url, 'https://github.com/akira69/ponytail-vscode.git');
   assert.match(readme, /https:\/\/github\.com\/DietrichGebert\/ponytail/);
   assert.match(readme, /Do not add these two agents manually/);
-  assert.match(readme, /Optional Agent Plugin.*adds the subagent-start hook/s);
+  assert.match(readme, /Optional Agent Plugin.*adds only the subagent-start hook/s);
+  assert.match(readme, /do not install a second copy from the Agent Plugin/);
+  assert.match(readme, /update both the extension and Agent Plugin/);
   assert.match(readme, /upstream\.json/);
   assert.doesNotMatch(readme, /\]\(UPSTREAM-README\.md\)/);
   assert.match(readme, /UPSTREAM-README\.md/);
@@ -52,7 +63,7 @@ test('extension docs identify and mirror the pinned upstream project', () => {
 });
 
 test('packaged core skill disables automatic model invocation', () => {
-  assert.match(read('skills/ponytail/SKILL.md'), /^disable-model-invocation:\s*true$/m);
+  assert.match(read('vscode/skills/ponytail/SKILL.md'), /^disable-model-invocation:\s*true$/m);
 });
 
 test('each generated instruction explains the VS Code mode controls', () => {
@@ -74,7 +85,7 @@ test('VSIX ignore rules exclude development content but keep runtime and plugin 
     assert.ok(ignored.has(file), `${file} must be excluded from the VSIX`);
   }
   for (const file of [
-    'shared/**', 'hooks/**', 'skills/**', 'generated/**',
+    'shared/**', 'hooks/**', 'vscode/skills/**', 'generated/**',
     'com.github.copilot/**', 'README.md', 'LICENSE',
   ]) {
     assert.ok(!ignored.has(file), `${file} must remain eligible for the VSIX`);
@@ -88,12 +99,14 @@ test('VSCE selects runtime and plugin files but excludes development and raw ups
   const files = new Set(listing.split(/\r?\n/).map((line) => line.trim()).filter(Boolean));
 
   assert.ok(![...files].some((file) => file.startsWith('.playwright-mcp/')), 'browser previews must not be packaged');
+  assert.ok(![...files].some((file) => file.startsWith('skills/')), 'plugin-discoverable skills must not be packaged at the repository root');
   for (const file of [
     'LICENSE', 'README.md', 'shared/mode-state.cjs',
     'media/ponytail.woff',
     'hooks/ponytail-config.js', 'hooks/ponytail-instructions.js',
+    'hooks/vscode-ponytail-instructions.js',
     'UPSTREAM-README.md',
-    'skills/ponytail/SKILL.md', 'generated/instructions/ponytail-full.instructions.md',
+    'vscode/skills/ponytail/SKILL.md', 'generated/instructions/ponytail-full.instructions.md',
     'com.github.copilot/hooks/subagent-start.cjs',
     'vscode/agents/ponytail-reviewer.agent.md',
   ]) {

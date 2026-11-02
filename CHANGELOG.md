@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4
+
+- Move the six extension skills out of the Agent Plugin discovery folder to prevent duplicate Copilot skills when both packages are installed.
+- Preserve optional subagent guidance using the extension-only core skill path, and clarify that both extension and plugin need updates to remove old duplicates.
+- Keep the scheduled upstream workflow aligned with the CI dependency-audit policy.
+
 ## 0.1.3
 
 - Keep the reviewer and researcher agents in the VS Code extension only, avoiding duplicate Agent dropdown entries when the optional Agent Plugin is installed.

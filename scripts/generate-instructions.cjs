@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { getPonytailInstructions } = require('../hooks/ponytail-instructions.js');
+const { getPonytailInstructions } = require('../hooks/vscode-ponytail-instructions.js');
 
 const outputDir = path.resolve(__dirname, '../generated/instructions');
 fs.mkdirSync(outputDir, { recursive: true });

@@ -69,7 +69,7 @@ jobs:
         run: npm run check:plugin
       - name: Lint and audit
         if: steps.changes.outputs.changed == 'true'
-        run: npm run lint && npm audit --audit-level=moderate
+        run: npm run lint && npm audit --omit=dev --audit-level=moderate && npm audit --audit-level=high
       - name: Test
         if: steps.changes.outputs.changed == 'true'
         run: xvfb-run -a npm test
@@ -78,7 +78,7 @@ jobs:
         run: npm run package
       - name: Save validated changes
         if: steps.changes.outputs.changed == 'true'
-        run: git diff --binary -- upstream.json upstream UPSTREAM-README.md LICENSE skills hooks generated/instructions > upstream-update.patch
+        run: git diff --binary -- upstream.json upstream UPSTREAM-README.md LICENSE vscode/skills hooks generated/instructions > upstream-update.patch
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.changes.outputs.changed == 'true'
         with:
@@ -104,7 +104,7 @@ jobs:
           path: ${{ runner.temp }}/upstream-update
       - name: Apply only the imported asset paths
         run: |
-          git apply --index --include=upstream.json --include='upstream/*' --include=UPSTREAM-README.md --include=LICENSE --include='skills/*' --include='hooks/*' --include='generated/instructions/*' -- "$RUNNER_TEMP/upstream-update/upstream-update.patch"
+          git apply --index --include=upstream.json --include='upstream/*' --include=UPSTREAM-README.md --include=LICENSE --include='vscode/skills/*' --include='hooks/*' --include='generated/instructions/*' -- "$RUNNER_TEMP/upstream-update/upstream-update.patch"
       - name: Open review pull request
         env:
           GH_TOKEN: ${{ github.token }}

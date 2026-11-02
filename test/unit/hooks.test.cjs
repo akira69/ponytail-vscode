@@ -5,7 +5,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { test } = require('node:test');
 const { writeMode } = require('../../shared/mode-state.cjs');
-const { getPonytailInstructions } = require('../../hooks/ponytail-instructions.js');
+const { getPonytailInstructions } = require('../../hooks/vscode-ponytail-instructions.js');
 
 const root = path.join(__dirname, '..', '..');
 const hook = path.join(root, 'com.github.copilot', 'hooks', 'subagent-start.cjs');

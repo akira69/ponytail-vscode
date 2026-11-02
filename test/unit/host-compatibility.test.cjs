@@ -4,6 +4,7 @@ const path = require('node:path');
 const { test } = require('node:test');
 const { spawnSync } = require('node:child_process');
 const { prepareSkill } = require('../../scripts/prepare-skills.cjs');
+const { getPonytailInstructions } = require('../../hooks/vscode-ponytail-instructions.js');
 const root = path.resolve(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
@@ -14,7 +15,7 @@ test('an upstream control change or duplicate stops adaptation instead of silent
 });
 
 test('packaged core preserves coding rules but replaces unsupported session controls', () => {
-  const core = read('skills/ponytail/SKILL.md');
+  const core = read('vscode/skills/ponytail/SKILL.md');
   const raw = read('upstream/skills/ponytail/SKILL.md');
   assert.doesNotMatch(core, /Active for the whole session|Switch level:|argument-hint:/);
   assert.match(core, /Ponytail: Set Mode/);
@@ -22,8 +23,14 @@ test('packaged core preserves coding rules but replaces unsupported session cont
   assert.equal(core.slice(core.indexOf('## Before you write')), raw.slice(raw.indexOf('## Before you write')));
 });
 
+test('plugin guidance reads the extension-only core skill', () => {
+  const instructions = getPonytailInstructions('full');
+  assert.match(instructions, /Ponytail: Set Mode/);
+  assert.doesNotMatch(instructions, /Used only when SKILL.md cannot be read/);
+});
+
 test('help describes persistent VS Code controls without Claude-only update commands', () => {
-  const help = read('skills/ponytail-help/SKILL.md');
+  const help = read('vscode/skills/ponytail-help/SKILL.md');
   assert.match(help, /Ponytail: Set Mode/);
   assert.match(help, /Install from VSIX/);
   assert.doesNotMatch(help, /\/plugin|\/reload-plugins|\/ponytail off|\/ponytail band/);

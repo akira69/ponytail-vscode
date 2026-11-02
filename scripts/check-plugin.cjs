@@ -5,8 +5,6 @@ const root = path.join(__dirname, '..');
 const errors = [];
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 const json = (rel) => JSON.parse(read(rel));
-const frontmatterName = (text) => (text.replace(/\r\n/g, '\n').match(/^---\n([\s\S]*?)\n---/) || [])[1]?.match(/^name:\s*(.+)$/m)?.[1].trim();
-
 const plugin = json('plugin.json');
 if (!/^https:\/\/agent-plugins\.org\/schemas\/1\.0\.0\//.test(plugin.$schema || '')) errors.push('plugin.json: missing Agent Plugins 1.0 $schema');
 if (plugin.name !== 'ponytail-vscode') errors.push('plugin.json: name must be ponytail-vscode');
@@ -26,12 +24,7 @@ if (fs.existsSync(agentDir) && fs.readdirSync(agentDir).some((file) => file.ends
   errors.push('com.github.copilot/agents: custom agents belong to the VS Code extension only');
 }
 
-const skills = ['ponytail', 'ponytail-audit', 'ponytail-debt', 'ponytail-gain', 'ponytail-help', 'ponytail-review'];
-for (const skill of skills) {
-  const file = path.join('skills', skill, 'SKILL.md');
-  if (!fs.existsSync(path.join(root, file))) errors.push(`${file}: missing`);
-  else if (frontmatterName(read(file)) !== skill) errors.push(`${file}: frontmatter name must be ${skill}`);
-}
+if (fs.existsSync(path.join(root, 'skills'))) errors.push('skills/: extension skills belong under vscode/skills to avoid duplicate plugin discovery');
 
 const license = read('LICENSE');
 if (!license.startsWith('MIT License') || !license.includes('Permission is hereby granted, free of charge')) errors.push('LICENSE: full MIT license missing');

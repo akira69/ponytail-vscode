@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const { getEffectiveMode } = require('../../shared/mode-state.cjs');
-const { getPonytailInstructions } = require('../../hooks/ponytail-instructions.js');
+const { getPonytailInstructions } = require('../../hooks/vscode-ponytail-instructions.js');
 
 // Guidance only: any failure emits {} so delegation is never blocked.
 try {

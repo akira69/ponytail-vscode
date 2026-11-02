@@ -30,7 +30,7 @@ function prepareSkill(name, raw) {
 if (require.main === module) {
   const prepared = ['ponytail', 'ponytail-help'].map((name) => ({ name, text: prepareSkill(name, fs.readFileSync(path.join(root, `upstream/skills/${name}/SKILL.md`), 'utf8')) }));
   for (const { name, text } of prepared) {
-    const destination = path.join(root, `skills/${name}/SKILL.md`);
+    const destination = path.join(root, `vscode/skills/${name}/SKILL.md`);
     fs.mkdirSync(path.dirname(destination), { recursive: true });
     fs.writeFileSync(destination, text, 'utf8');
   }

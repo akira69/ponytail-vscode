@@ -55,7 +55,7 @@ if (pin) {
 }
 
 for (const name of skillNames) {
-  const relative = `skills/${name}/SKILL.md`;
+  const relative = `vscode/skills/${name}/SKILL.md`;
   if (!fs.existsSync(path.join(root, relative))) { errors.push(`${relative}: missing`); continue; }
   const skill = parseSkill(relative);
   if (skill) check(skill.metadata.name === name, `${relative}: name does not match folder`);
@@ -64,7 +64,7 @@ for (const name of skillNames) {
 for (const name of ['ponytail', 'ponytail-help']) {
   try {
     const expected = prepareSkill(name, read(`upstream/skills/${name}/SKILL.md`));
-    check(read(`skills/${name}/SKILL.md`) === expected, `${name}: packaged skill differs from the checked VS Code adaptation`);
+    check(read(`vscode/skills/${name}/SKILL.md`) === expected, `${name}: packaged skill differs from the checked VS Code adaptation`);
   } catch (error) {
     errors.push(`${name}: ${error.message}`);
   }
