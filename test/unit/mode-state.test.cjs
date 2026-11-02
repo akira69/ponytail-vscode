@@ -50,6 +50,24 @@ test('reads shared state without a workspace root', (t) => {
   assert.equal(readMode(), 'off');
 });
 
+test('overwrites hidden Windows state files without removing their hidden attribute', { skip: process.platform !== 'win32' }, (t) => {
+  const { execFileSync } = require('node:child_process');
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ponytail-home-'));
+  const { stateDir } = setup(t, home);
+  const workspace = path.join(home, 'repo');
+  const hash = crypto.createHash('sha256').update(path.normalize(workspace)).digest('hex');
+  writeMode('ultra', workspace);
+  const files = [path.join(stateDir, '.ponytail-active'), path.join(stateDir, 'ponytail-modes', hash)];
+  for (const file of files) execFileSync('attrib.exe', ['+H', file]);
+  t.after(() => {
+    for (const file of files) if (fs.existsSync(file)) execFileSync('attrib.exe', ['-H', file]);
+  });
+  writeMode('off', workspace);
+  assert.equal(readMode(), 'off');
+  assert.equal(readMode(workspace), 'off');
+  for (const file of files) assert.match(execFileSync('attrib.exe', [file], { encoding: 'utf8' }), /H/);
+});
+
 test('rejects invalid writes without changing existing workspace state', (t) => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ponytail-home-'));
   setup(t, home);

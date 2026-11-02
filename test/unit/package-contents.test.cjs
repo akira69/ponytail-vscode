@@ -16,6 +16,10 @@ test('package manifest contributes the expected VS Code resources', () => {
   assert.equal(manifest.contributes.chatInstructions.length, 3);
   assert.equal(manifest.contributes.chatAgents.length, 2);
   assert.deepEqual(manifest.contributes.commands.map(({ command }) => command), ['ponytail.setMode']);
+  const face = manifest.contributes.icons['ponytail-face'];
+  assert.equal(face.default.fontCharacter, '\\e001');
+  assert.equal(face.default.fontPath, './media/ponytail.woff');
+  assert.equal(fs.readFileSync(path.join(root, face.default.fontPath)).toString('ascii', 0, 4), 'wOFF');
   for (const { path: file } of [
     ...manifest.contributes.chatSkills,
     ...manifest.contributes.chatInstructions,
@@ -55,6 +59,7 @@ test('VSIX ignore rules exclude development content but keep runtime and plugin 
   const ignored = new Set(read('.vscodeignore').split(/\r?\n/).map((line) => line.trim()).filter(Boolean));
   for (const file of [
     'upstream/**', 'scripts/**', '.superpowers/**', '.vscode/**', '.vscode-test/**',
+    '.playwright-mcp/**',
     'out/**', 'test/**', 'src/**', 'node_modules/**', '.github/**',
     'docs/**', 'package-lock.json', 'tsconfig.json', 'esbuild.mjs', 'biome.json',
   ]) {
@@ -74,8 +79,10 @@ test('VSCE selects runtime and plugin files but excludes development and raw ups
   const listing = execFileSync(process.execPath, [cliPath, 'ls'], { cwd: root, encoding: 'utf8' });
   const files = new Set(listing.split(/\r?\n/).map((line) => line.trim()).filter(Boolean));
 
+  assert.ok(![...files].some((file) => file.startsWith('.playwright-mcp/')), 'browser previews must not be packaged');
   for (const file of [
     'LICENSE', 'README.md', 'shared/mode-state.cjs',
+    'media/ponytail.woff',
     'hooks/ponytail-config.js', 'hooks/ponytail-instructions.js',
     'UPSTREAM-README.md',
     'skills/ponytail/SKILL.md', 'generated/instructions/ponytail-full.instructions.md',

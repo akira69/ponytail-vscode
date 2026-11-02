@@ -28,7 +28,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const refresh = (): void => {
     const mode = modeState.getEffectiveMode(workspaceRoot);
-    status.text = `$(symbol-misc) Ponytail: ${mode.toUpperCase()}`;
+    status.text = `$(ponytail-face) Ponytail: ${mode.toUpperCase()}`;
     status.tooltip = `Ponytail mode: ${mode}. Select to change.`;
     void vscode.commands.executeCommand('setContext', 'ponytail.mode', mode);
   };

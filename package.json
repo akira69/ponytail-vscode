@@ -36,6 +36,15 @@
     "package": "npm run compile && vsce package"
   },
   "contributes": {
+    "icons": {
+      "ponytail-face": {
+        "description": "Original Ponytail face",
+        "default": {
+          "fontPath": "./media/ponytail.woff",
+          "fontCharacter": "\\e001"
+        }
+      }
+    },
     "commands": [
       {
         "command": "ponytail.setMode",

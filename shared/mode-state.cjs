@@ -29,7 +29,19 @@ function writeMode(mode, workspaceRoot) {
   const paths = [sharedPath(), workspacePath(workspaceRoot)].filter(Boolean);
   for (const file of paths) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, normalized, 'utf8');
+    let descriptor;
+    try {
+      descriptor = fs.openSync(file, 'r+');
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      descriptor = fs.openSync(file, 'w');
+    }
+    try {
+      fs.writeFileSync(descriptor, normalized, 'utf8');
+      fs.ftruncateSync(descriptor, Buffer.byteLength(normalized));
+    } finally {
+      fs.closeSync(descriptor);
+    }
   }
 }
 

@@ -43,6 +43,7 @@ test('external mode writes update both instruction context and status in every w
     return { status, mode: () => mode };
   });
   assert.ok(windows.every((window) => window.mode() === 'full'));
+  for (const window of windows) assert.equal(window.status.text, '$(ponytail-face) Ponytail: FULL');
   state.writeMode('off', workspace);
   const deadline = Date.now() + 3000;
   while (Date.now() < deadline && windows.some((window) => window.mode() !== 'off')) await delay(50);

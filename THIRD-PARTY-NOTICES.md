@@ -10,4 +10,6 @@ The full MIT license is in [LICENSE](LICENSE) and is included in both the packag
 
 Artwork source commit: `7801d061243d7b753bad0e0b3c057cd250b11755` (v5.3.3). SHA-256: `818905aa5c99519b4e648fee82828c97dbeb471603335c990605dfe29b966121`. This presentation asset is pinned separately from the prompt updater; future artwork changes need review and an updated attribution record.
 
+`media/ponytail-status.svg` is a simplified monochrome adaptation of the original face, retaining the ponytail, oval glasses, and frown for legibility at status-bar sizes. It is the source for the U+E001 glyph in `media/ponytail.woff`. Both derivatives use the same upstream MIT license and attribution. The font was generated with svgtofont (startUnicode 0xe001, fontHeight 1000, normalize, centerHorizontally, fixedWidth), an asset-generation tool rather than a runtime dependency.
+
 The community integration does not claim authorship of the upstream artwork or endorsement by its creators. It does not incorporate Microsoft's Visual Studio Code logo; see the [VS Code brand guidelines](https://code.visualstudio.com/brand).
