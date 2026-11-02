@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+- Fix mode changes failing with EPERM when Windows state files have the Hidden attribute, preserving file attributes and correctly replacing shorter mode names.
+- Replace the geometric status-bar icon with a thin-lined Ponytail face based on the original artwork.
+- Exclude temporary browser previews from the packaged extension.
+
 ## 0.1.1
 
 - Explain the community integration's purpose and credit DietrichGebert's original Ponytail project at the start of the Marketplace listing.
