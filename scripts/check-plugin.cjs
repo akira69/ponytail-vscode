@@ -22,9 +22,8 @@ for (const [event, entries] of Object.entries(hooks)) {
 }
 
 const agentDir = path.join(root, 'com.github.copilot', 'agents');
-for (const file of fs.readdirSync(agentDir).filter((f) => f.endsWith('.agent.md'))) {
-  const name = frontmatterName(fs.readFileSync(path.join(agentDir, file), 'utf8'));
-  if (name !== file.replace(/\.agent\.md$/, '')) errors.push(`agents/${file}: frontmatter name "${name}" does not match filename`);
+if (fs.existsSync(agentDir) && fs.readdirSync(agentDir).some((file) => file.endsWith('.agent.md'))) {
+  errors.push('com.github.copilot/agents: custom agents belong to the VS Code extension only');
 }
 
 const skills = ['ponytail', 'ponytail-audit', 'ponytail-debt', 'ponytail-gain', 'ponytail-help', 'ponytail-review'];

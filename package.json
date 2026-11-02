@@ -2,7 +2,7 @@
   "name": "ponytail-dietrichgebert-sync",
   "displayName": "Ponytail Copilot Sync",
   "publisher": "Finch13",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Community integration of DietrichGebert's Ponytail guidance for GitHub Copilot: persistent modes, review and audit skills.",
   "homepage": "https://github.com/akira69/ponytail-vscode#readme",
   "repository": {
@@ -74,10 +74,10 @@
     ],
     "chatAgents": [
       {
-        "path": "./com.github.copilot/agents/ponytail-reviewer.agent.md"
+        "path": "./vscode/agents/ponytail-reviewer.agent.md"
       },
       {
-        "path": "./com.github.copilot/agents/ponytail-researcher.agent.md"
+        "path": "./vscode/agents/ponytail-researcher.agent.md"
       }
     ],
     "chatInstructions": [

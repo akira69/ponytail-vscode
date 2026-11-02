@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Keep the reviewer and researcher agents in the VS Code extension only, avoiding duplicate Agent dropdown entries when the optional Agent Plugin is installed.
+- Clarify that the optional Agent Plugin adds subagent-start guidance, not custom agents.
+
 ## 0.1.2
 
 - Fix mode changes failing with EPERM when Windows state files have the Hidden attribute, preserving file attributes and correctly replacing shorter mode names.

@@ -15,6 +15,12 @@ test('package manifest contributes the expected VS Code resources', () => {
   assert.equal(manifest.contributes.chatSkills.length, 6);
   assert.equal(manifest.contributes.chatInstructions.length, 3);
   assert.equal(manifest.contributes.chatAgents.length, 2);
+  assert.deepEqual(manifest.contributes.chatAgents.map(({ path }) => path).sort(), [
+    './vscode/agents/ponytail-researcher.agent.md',
+    './vscode/agents/ponytail-reviewer.agent.md',
+  ]);
+  const pluginAgentDir = path.join(root, 'com.github.copilot/agents');
+  assert.ok(!fs.existsSync(pluginAgentDir) || !fs.readdirSync(pluginAgentDir).some((file) => file.endsWith('.agent.md')));
   assert.deepEqual(manifest.contributes.commands.map(({ command }) => command), ['ponytail.setMode']);
   const face = manifest.contributes.icons['ponytail-face'];
   assert.equal(face.default.fontCharacter, '\\e001');
@@ -36,6 +42,8 @@ test('extension docs identify and mirror the pinned upstream project', () => {
 
   assert.equal(manifest.repository.url, 'https://github.com/akira69/ponytail-vscode.git');
   assert.match(readme, /https:\/\/github\.com\/DietrichGebert\/ponytail/);
+  assert.match(readme, /Do not add these two agents manually/);
+  assert.match(readme, /Optional Agent Plugin.*adds the subagent-start hook/s);
   assert.match(readme, /upstream\.json/);
   assert.doesNotMatch(readme, /\]\(UPSTREAM-README\.md\)/);
   assert.match(readme, /UPSTREAM-README\.md/);
@@ -87,7 +95,7 @@ test('VSCE selects runtime and plugin files but excludes development and raw ups
     'UPSTREAM-README.md',
     'skills/ponytail/SKILL.md', 'generated/instructions/ponytail-full.instructions.md',
     'com.github.copilot/hooks/subagent-start.cjs',
-    'com.github.copilot/agents/ponytail-reviewer.agent.md',
+    'vscode/agents/ponytail-reviewer.agent.md',
   ]) {
     assert.ok(files.has(file), `${file} must be selected for the VSIX`);
   }

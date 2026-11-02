@@ -53,11 +53,16 @@ The optional reviewer and researcher agents below serve focused roles; neither i
 | `/ponytail-gain` | Show upstream benchmark results, not measurements of this extension. |
 | `/ponytail-help` | Explain controls, scope, and usage. |
 
-The extension also contributes `ponytail-reviewer` and `ponytail-researcher` custom agents.
+The extension contributes `ponytail-reviewer` and `ponytail-researcher` to the Agent dropdown automatically. **Do not add these two agents manually.**
 
 ## Optional subagent guidance
 
-The extension alone provides the controls, skills, custom agents, and mode-specific chat instructions. Automatic guidance when eligible subagents start requires installing [this repository](https://github.com/akira69/ponytail-vscode) separately as a **GitHub Copilot Agent Plugin** through Copilot's plugin manager.
+The extension and plugin have separate jobs:
+
+- **VS Code extension:** provides the mode control, skills, chat instructions, and the two custom agents above.
+- **Optional Agent Plugin:** adds the subagent-start hook, which supplies Ponytail guidance to eligible subagents. It does not provide the two custom agents.
+
+You can install both. The plugin does not add duplicate agents. Install the [GitHub Copilot Agent Plugin](https://github.com/akira69/ponytail-vscode) through Copilot's plugin manager only if you want its automatic subagent guidance.
 
 That optional hook requires Node.js on PATH and plugin hooks enabled in a supported, trusted Copilot environment; organization policy may restrict it. The built-in `general-purpose` subagent does not emit the start hook, so the parent must pass the guidance explicitly. The prepared prompts include that reminder.
 
