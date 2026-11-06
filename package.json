@@ -98,10 +98,10 @@
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^26.6.5",
-    "@types/vscode": "^1.99.0",
+    "@types/node": "^26.6.6",
+    "@types/vscode": "^1.144.0",
     "@vscode/test-electron": "^3.1.0",
-    "@vscode/vsce": "^4.0.0",
+    "@vscode/vsce": "^4.1.0",
     "esbuild": "^0.28.2",
     "mocha": "^12.0.3",
     "typescript": "^7.0.2",
